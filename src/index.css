@@ -1,13 +1,115 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+*::before,
+*::after {
+    box-sizing: border-box;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+html, body {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* for the video element, only works on firefox?? */
+}
+
+body {
+    background-color: #000;
+    font-family: 'Doppio One';
+    width: 90%;
+    color: #eee;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+}
+
+hr {
+    border: none;
+    border-bottom: 2px solid #eee;
+    margin: 0.71vh auto 0.71vh auto;
+    opacity: 0.5;
+}
+
+.bar-header {
+    text-align: center;
+}
+
+.bar-logo {
+    width: 22.1vh;
+}
+
+.bar-subtitle {
+    font-size: 1.5vh;
+    font-weight: normal;
+}
+
+.bar-section {
+    text-align: center;
+}
+
+.bar-section-title {
+    font-size: 1.4vh;
+    font-weight: normal;
+}
+
+.bar-section-grid {
+    display: grid;
+    grid-template-columns: auto auto;
+}
+
+.bar-item {
+    display: flex;
+    text-align: left;
+    padding: 0.36vh;
+    align-items: center;
+}
+
+.bar-item-title {
+    margin-bottom: 0.18vh;
+    font-size: 1.25vh;
+}
+
+.bar-item-price {
+    font-size: 1.1vh;
+}
+
+.bar-item-logo {
+    margin-right: 24px;
+    height: 7vh;
+    width: 7vh;
+}
+
+.bar-item-logo img {
+    width: 100%;
+    height: 100%;
+    object-Fit: contain;
+    margin: auto;
+}
+
+.bar-item-skull {
+    vertical-align: middle;
+    width: 1.42vh;
+    margin-left: 1px;
+    margin-right: 2px;
+    margin-top: -0.18vh;
+}
+
+.bar-background-video {
+    position: absolute;
+    width: 100%;
+    z-index: -1000;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%) scale(2);
+    opacity: 0.33;
+}
+
+.bar-footer {
+    text-align: center;
+    font-size: 1vh;
 }
