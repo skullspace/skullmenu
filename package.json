@@ -35,7 +35,7 @@
       "last 1 safari version"
     ]
   },
-  "description": "Menu for the rave bar at SkullSpace",
+  "description": "Menu for the social bar at SkullSpace",
   "main": "",
   "devDependencies": {},
   "repository": {
@@ -51,6 +51,5 @@
   "license": "AGPL-3.0+",
   "bugs": {
     "url": "https://github.com/skullspace/skullmenu/issues"
-  },
-  "homepage": "https://github.com/skullspace/skullmenu#readme"
+  }
 }
