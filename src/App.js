@@ -48,21 +48,20 @@ function App() {
             name: '🍺 Beers',
             items: [
                 {
-                    name: 'Skulls Light',
-                    image: 'skulls-light.png',
-                    size: 473,
-                    price: 1100
+                    name: 'Coors',
+                    image: 'coors.svg',
+                    size: 355,
+                    price: 900
+                },
+                {
+                    name: 'Coors Light',
+                    image: 'coors-light.svg',
+                    size: 355,
+                    price: 900
                 },
                 {
                     name: 'Pabst Blue Ribbon',
                     image: 'pbr.svg',
-                    size: 355,
-                    price: 900
-                },
-                { name: 'Coors', image: 'coors.svg', size: 355, price: 900 },
-                {
-                    name: 'Coors Light',
-                    image: 'coors-light.svg',
                     size: 355,
                     price: 900
                 },
@@ -72,18 +71,6 @@ function App() {
                     size: 473,
                     price: 1200
                 },
-                {
-                    name: 'Fort Garry',
-                    image: 'fort-garry.png',
-                    size: 473,
-                    price: 1200
-                },
-                {
-                    name: 'Trans Canada Brewing',
-                    image: 'tcb.png',
-                    size: 355,
-                    price: 900
-                }
             ]
         },
         {
@@ -122,7 +109,7 @@ function App() {
             ]
         },
         {
-            name: '🥃 Cocktails/Shots',
+            name: '🥃 Mixed Drinks/Shots',
             items: [
                 { name: 'Single', size: 40, price: 900 },
                 { name: 'Double', size: 80, price: 1600 }
@@ -174,7 +161,7 @@ function App() {
     ];
 
     return (
-        <div onClick={() => document.documentElement.requestFullscreen()}>
+        <content  onClick={() => document.documentElement.requestFullscreen()}>
             <video
                 className="bar-background-video"
                 src="background.mp4"
@@ -191,16 +178,18 @@ function App() {
                 />
                 <h2 className="bar-subtitle">Bar Menu</h2>
             </header>
-
-            {sections.map((section) => (
-                <section className="bar-section">
-                    <hr style={{ width: '50%' }} />
+            <main>
+                {sections.map((section) => (
+                    <section className="bar-section">
+                        <hr style={{ width: '50%' }} />
                     <h2 className="bar-section-title">{section.name}</h2>
                     <div className="bar-section-grid">
                         {section.items.map((item) => BarItem(item))}
-                    </div>
+                        </div>
+
                 </section>
             ))}
+            </main>
 
             <hr />
 
@@ -210,7 +199,7 @@ function App() {
                     SkullSpace members receieve a <strong>50% discount</strong>.
                 </em>
             </footer>
-        </div>
+        </content>
     );
 }
 

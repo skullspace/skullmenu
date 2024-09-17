@@ -12,6 +12,13 @@ html, body {
     overflow: hidden; /* for the video element, only works on firefox?? */
 }
 
+content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 90vh;
+}
+
 body {
     background-color: #000;
     font-family: 'Doppio One';
@@ -40,12 +47,20 @@ hr {
 }
 
 .bar-logo {
-    width: 22.1vh;
+    width: 40vh;
 }
 
 .bar-subtitle {
-    font-size: 1.5vh;
+    font-size: 3rem;
     font-weight: normal;
+}
+
+main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 5vh;
+    padding: 0 5vh;
+
 }
 
 .bar-section {
@@ -53,11 +68,12 @@ hr {
 }
 
 .bar-section-title {
-    font-size: 1.4vh;
+    font-size: 2.5rem;
     font-weight: normal;
 }
 
 .bar-section-grid {
+    padding:2vh 0;
     display: grid;
     grid-template-columns: auto auto;
 }
@@ -65,17 +81,17 @@ hr {
 .bar-item {
     display: flex;
     text-align: left;
-    padding: 0.36vh;
+    padding: 0.5vh;
     align-items: center;
 }
 
 .bar-item-title {
     margin-bottom: 0.18vh;
-    font-size: 1.25vh;
+    font-size: 1.75rem;
 }
 
 .bar-item-price {
-    font-size: 1.1vh;
+    font-size: 1.5vh;
 }
 
 .bar-item-logo {
@@ -111,5 +127,5 @@ hr {
 
 .bar-footer {
     text-align: center;
-    font-size: 1vh;
+    font-size: 2vh;
 }
