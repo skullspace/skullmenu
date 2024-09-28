@@ -123,15 +123,6 @@ function App() {
             hack: true
         },
         {
-            name: 'Food',
-            items: [
-                { name: 'Pizza', price: 300 },
-                { name: 'Pizza 2 Slice', price: 500 },
-
-            ],
-            hack: true
-        },
-        {
             name: '🚫 Non-Alcoholic',
             items: [
                 {
@@ -155,7 +146,16 @@ function App() {
                     price: 600
                 }
             ]
-        }
+        },
+        {
+            name: 'Food',
+            items: [
+                { name: 'Pizza', price: 300 },
+                { name: 'Pizza 2 Slice', price: 500 },
+
+            ],
+            hack: true
+        },
     ];
 
     return (
