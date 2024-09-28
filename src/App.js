@@ -71,6 +71,12 @@ function App() {
                     size: 473,
                     price: 1000
                 },
+                {
+                    name: 'Kilter Juicii',
+                    image: 'kilter.png',
+                    size: 473,
+                    price: 1000
+                },
             ]
         },
         {
@@ -116,23 +122,15 @@ function App() {
             ],
             hack: true
         },
-        /*{
-            name: '🍷 Wine',
+        {
+            name: 'Food',
             items: [
-                {
-                    name: 'Sawmill Creek Cabernet Sauvignon',
-                    image: 'sawmill-red.png',
-                    size: 207,
-                    price: 900
-                },
-                {
-                    name: 'Sawmill Creek Dry White',
-                    image: 'sawmill-white.png',
-                    size: 207,
-                    price: 900
-                }
-            ]
-        },*/
+                { name: 'Pizza', price: 300 },
+                { name: 'Pizza 2 Slice', price: 500 },
+
+            ],
+            hack: true
+        },
         {
             name: '🚫 Non-Alcoholic',
             items: [
