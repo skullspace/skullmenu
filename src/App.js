@@ -51,25 +51,25 @@ function App() {
                     name: 'Coors',
                     image: 'coors.svg',
                     size: 355,
-                    price: 900
+                    price: 800
                 },
                 {
                     name: 'Coors Light',
                     image: 'coors-light.svg',
                     size: 355,
-                    price: 900
+                    price: 800
                 },
                 {
                     name: 'Pabst Blue Ribbon',
                     image: 'pbr.svg',
                     size: 355,
-                    price: 900
+                    price: 800
                 },
                 {
                     name: 'Half Pints St. James Pale Ale',
                     image: 'half-pints.png',
                     size: 473,
-                    price: 1200
+                    price: 1000
                 },
             ]
         },
@@ -80,31 +80,31 @@ function App() {
                     name: 'White Claw Black Cherry',
                     image: 'white-claw-black-cherry.png',
                     size: 355,
-                    price: 1000
+                    price: 900
                 },
                 {
                     name: 'White Claw Watermelon',
                     image: 'white-claw-watermelon.png',
                     size: 355,
-                    price: 1000
+                    price: 900
                 },
                 {
                     name: 'White Claw Natural Lime',
                     image: 'white-claw-lime.png',
                     size: 355,
-                    price: 1000
+                    price: 900
                 },
                 {
                     name: 'White Claw Mango',
                     image: 'white-claw-mango.png',
                     size: 355,
-                    price: 1000
+                    price: 900
                 },
                 {
                     name: 'White Claw Ruby Grapefruit',
                     image: 'white-claw-grapefruit.png',
                     size: 355,
-                    price: 1000
+                    price: 900
                 }
             ]
         },
