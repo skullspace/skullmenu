@@ -162,7 +162,7 @@ function App() {
         <content  onClick={() => document.documentElement.requestFullscreen()}>
             <video
                 className="bar-background-video"
-                src="background.mp4"
+                src="background.webm"
                 autoPlay={true}
                 loop={true}
                 muted={true}
