@@ -77,12 +77,14 @@
     {
         "id": 16,
         "name": "Pizza",
+        "image": "pizza1.png",
         "price": 300,
         "category": 5
     },
     {
         "id": 17,
         "name": "Pizza 2 Slice",
+        "image": "pizza2.png",
         "price": 500,
         "category": 5
     }
