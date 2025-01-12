@@ -1,0 +1,136 @@
+[
+    {
+        "id": 1,
+        "name": "Coors",
+        "image": "coors.svg",
+        "size": 355,
+        "price": 800,
+        "category": 1
+    },
+    {
+        "id": 2,
+        "name": "Coors Light",
+        "image": "coors-light.svg",
+        "size": 355,
+        "price": 800,
+        "category": 1
+    },
+    {
+        "id": 3,
+        "name": "Pabst Blue Ribbon",
+        "image": "pbr.svg",
+        "size": 355,
+        "price": 800,
+        "category": 1
+    },
+    {
+        "id": 4,
+        "name": "Half Pints St. James Pale Ale",
+        "image": "half-pints.png",
+        "size": 473,
+        "price": 1000,
+        "category": 1
+    },
+    {
+        "id": 5,
+        "name": "Kilter Juicii",
+        "image": "kilter.png",
+        "size": 473,
+        "price": 1000,
+        "category": 1
+    },
+    {
+        "id": 6,
+        "name": "White Claw Black Cherry",
+        "image": "white-claw-black-cherry.png",
+        "size": 355,
+        "price": 900,
+        "category": 2
+    },
+    {
+        "id": 7,
+        "name": "White Claw Watermelon",
+        "image": "white-claw-watermelon.png",
+        "size": 355,
+        "price": 900,
+        "category": 2
+    },
+    {
+        "id": 8,
+        "name": "White Claw Natural Lime",
+        "image": "white-claw-lime.png",
+        "size": 355,
+        "price": 900,
+        "category": 2
+    },
+    {
+        "id": 9,
+        "name": "White Claw Mango",
+        "image": "white-claw-mango.png",
+        "size": 355,
+        "price": 900,
+        "category": 2
+    },
+    {
+        "id": 10,
+        "name": "White Claw Ruby Grapefruit",
+        "image": "white-claw-grapefruit.png",
+        "size": 355,
+        "price": 900,
+        "category": 2
+    },
+    {
+        "id": 11,
+        "name": "Single",
+        "size": 40,
+        "price": 900,
+        "category": 3
+    },
+    {
+        "id": 12,
+        "name": "Double",
+        "size": 80,
+        "price": 1600,
+        "category": 3
+    },
+    {
+        "id": 13,
+        "name": "Soda / Water",
+        "image": "coke.svg",
+        "price": 300,
+        "category": 4
+    },
+    {
+        "id": 14,
+        "name": "Olé Mocktails",
+        "image": "ole.png",
+        "price": 800,
+        "category": 4
+    },
+    {
+        "id": 15,
+        "name": "Red Bull",
+        "image": "redbull.webp",
+        "price": 600,
+        "category": 4
+    },
+    {
+        "id": 16,
+        "name": "Red Bull Zero Sugar",
+        "image": "redbull-zero.png",
+        "price": 600,
+        "category": 4
+    },
+    {
+        "id": 17,
+        "name": "Pizza",
+        "price": 300,
+        "category": 5
+    },
+    {
+        "id": 18,
+        "name": "Pizza 2 Slice",
+        "price": 500,
+        "category": 5
+    }
+]

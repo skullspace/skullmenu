@@ -1,46 +1,7 @@
-const CAD = new Intl.NumberFormat('en-ca', {
-    style: 'currency',
-    currency: 'CAD'
-});
+import React from 'react';
+import SkullSpaceMemberLogo from './components/SkullSpaceMemberLogo';
+import BarItem from './components/BarItem';
 
-function SkullSpaceMemberLogo() {
-    return (
-        <img
-            className="bar-item-skull"
-            src="skullspace-round.svg"
-            alt="SkullSpace member logo"
-        />
-    );
-}
-
-function BarItem({ name, image, size, price }) {
-    const textStyle = image ? { flex: 1 } : {};
-
-    return (
-        <div
-            className="bar-item"
-            style={{ justifyContent: image ? 'left' : 'center' }}
-        >
-            {image ? (
-                <div className="bar-item-logo">
-                    <img src={image} alt="" />
-                </div>
-            ) : (
-                ''
-            )}
-            <div style={textStyle}>
-                <h4 className="bar-item-title">
-                    {name} {size ? <i>{size}mL</i> : ''}
-                </h4>
-                <span className="bar-item-price">
-                    {CAD.format(price / 100)} (
-                    <SkullSpaceMemberLogo />
-                    {CAD.format(price / 100 / 2)})
-                </span>
-            </div>
-        </div>
-    );
-}
 
 function App() {
     const sections = [
@@ -159,7 +120,7 @@ function App() {
     ];
 
     return (
-        <content  onClick={() => document.documentElement.requestFullscreen()}>
+        <content onClick={() => document.documentElement.requestFullscreen()}>
             <video
                 className="bar-background-video"
                 src="background.webm"
@@ -180,13 +141,13 @@ function App() {
                 {sections.map((section) => (
                     <section className="bar-section">
                         <hr style={{ width: '50%' }} />
-                    <h2 className="bar-section-title">{section.name}</h2>
-                    <div className="bar-section-grid">
-                        {section.items.map((item) => BarItem(item))}
+                        <h2 className="bar-section-title">{section.name}</h2>
+                        <div className="bar-section-grid">
+                            {section.items.map((item) => BarItem(item))}
                         </div>
 
-                </section>
-            ))}
+                    </section>
+                ))}
             </main>
 
             <hr />
