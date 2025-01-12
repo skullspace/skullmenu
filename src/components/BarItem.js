@@ -25,8 +25,8 @@ export default function BarItem({ name, image, size, price }) {
             )}
             <div style={textStyle}>
                 <h4 className="bar-item-title">
-                    {name} {size ? <i>{size}mL</i> : ''}
-                </h4>
+                    {name}
+                </h4>{size ? <><span className="bar-item-size"><i>{size}mL</i></span> <br /></> : <></>}
                 <span className="bar-item-price">
                     {CAD.format(price / 100)} (
                     <SkullSpaceMemberLogo />
