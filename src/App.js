@@ -54,7 +54,8 @@ export default function App() {
         }));
 
 
-    }, [client]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
 
 
