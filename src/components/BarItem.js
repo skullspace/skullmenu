@@ -6,9 +6,14 @@ const CAD = new Intl.NumberFormat('en-ca', {
     currency: 'CAD'
 });
 
+const imgurl = (file) => {
+    return `https://api.cloud.shotty.tech/v1/storage/buckets/67ca0bcc002993f0ef2f/files/${file}/view?project=67c9ff7a0013c21e2b40`;
+}
 
 
-export default function BarItem({ name, image, size, price }) {
+
+export default function BarItem({ name, image, size, price, canadian }) {
+    console.log(canadian);
     const textStyle = image ? { flex: 1 } : {};
 
     return (
@@ -18,8 +23,17 @@ export default function BarItem({ name, image, size, price }) {
         >
             {image ? (
                 <div className="bar-item-logo">
-                    <img src={image} alt="" />
+                    <img src={imgurl(image)} alt="" />
+
+                    {(canadian == 'true') && (
+                        <img
+                            className="canadian"
+                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Maple_Leaf.svg/900px-Maple_Leaf.svg.png?20190127193104"
+                            alt="Canadian Flag"
+                        />
+                    )}
                 </div>
+
             ) : (
                 ''
             )}

@@ -123,6 +123,14 @@ main {
     margin: auto;
 }
 
+.canadian {
+    position: relative;
+    top: -3vh;
+    left: 2vw;
+    height: 50% !important;
+    width: 50% !important;
+}
+
 .bar-item-skull {
     vertical-align: middle;
     width: 1.42vh;
