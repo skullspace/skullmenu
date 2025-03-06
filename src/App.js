@@ -1,6 +1,6 @@
 import React from 'react';
 // import appwrite
-import { Client as Appwrite, Databases, Account, Query } from 'appwrite';
+import { Client as Appwrite, Databases } from 'appwrite';
 
 import BarItem from './components/BarItem';
 import Footer from './components/Footer';
@@ -16,7 +16,7 @@ export default function App() {
     });
 
     // Init database
-    const database = new client.Database(client);
+    const database = new Databases(client);
 
     // db id 67c9ffd9003d68236514
     // items collection id 67c9ffe6001c17071bb7
