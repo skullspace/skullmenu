@@ -10,7 +10,7 @@ import Header from './components/Header';
 export default function App() {
 
     // Init appwrite
-    const client = new Appwrite.Client({
+    const client = new Appwrite({
         endpoint: "https://api.cloud.shotty.tech/v1",
         project: "67c9ff7a0013c21e2b40",
     });
