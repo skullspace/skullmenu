@@ -1,6 +1,6 @@
 import React from 'react';
 // import appwrite
-import { Client as Appwrite, Databases } from 'appwrite';
+import { Client as Appwrite, Databases, account } from 'appwrite';
 
 import BarItem from './components/BarItem';
 import Footer from './components/Footer';
@@ -9,10 +9,20 @@ import Header from './components/Header';
 
 export default function App() {
 
+
+
     // Init appwrite
     const client = new Appwrite({
         endpoint: "https://api.cloud.shotty.tech/v1",
         project: "67c9ff7a0013c21e2b40",
+    });
+
+    const promise = account.createAnonymousSession();
+
+    promise.then(function (response) {
+        console.log(response); // Success
+    }, function (error) {
+        console.log(error); // Failure
     });
 
     // Init database
@@ -23,6 +33,7 @@ export default function App() {
     // category collection id 67c9ffdd0039c4e09c9a
     const categories = [];
     const items = [];
+
 
     client.subscribe.bind(client)([
         "databases.67c9ffd9003d68236514.collections.67c9ffe6001c17071bb7.documents",
