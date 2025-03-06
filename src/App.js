@@ -13,15 +13,15 @@ export default function App() {
 
     // Init appwrite
     const client = new Appwrite();
-    client.setEndpoint('https://api.cloud.shotty.tech/v1').setProject('67c9ff7a0013c21e2b40');
-
-    const account = new Account(client);
 
     const [categories, setCategories] = useState([]);
     const [items, setItems] = useState([]);
 
 
     useEffect(() => {
+        client.setEndpoint('https://api.cloud.shotty.tech/v1').setProject('67c9ff7a0013c21e2b40');
+
+        const account = new Account(client);
         const promise = account.createAnonymousSession();
 
         promise.then(function (response) {
