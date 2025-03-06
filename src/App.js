@@ -24,10 +24,10 @@ export default function App() {
     const categories = [];
     const items = [];
 
-    const itemsSubscription = database.subscribe([
+    const itemsSubscription = client.subscribe.bind(client)([
         "databases.67c9ffd9003d68236514.collections.67c9ffe6001c17071bb7.documents",
     ]);
-    const categoriesSubscription = database.subscribe([
+    const categoriesSubscription = client.subscribe.bind(client)([
         "databases.67c9ffd9003d68236514.collections.67c9ffdd0039c4e09c9a.documents",
     ]);
 
