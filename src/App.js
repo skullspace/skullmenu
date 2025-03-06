@@ -1,6 +1,6 @@
 import React from 'react';
 // import appwrite
-import appwrite from 'appwrite';
+import { Client as Appwrite, Databases, Account, Query } from 'appwrite';
 
 import BarItem from './components/BarItem';
 import Footer from './components/Footer';
@@ -10,13 +10,13 @@ import Header from './components/Header';
 export default function App() {
 
     // Init appwrite
-    const client = new appwrite.Client({
+    const client = new Appwrite.Client({
         endpoint: "https://api.cloud.shotty.tech/v1",
         project: "67c9ff7a0013c21e2b40",
     });
 
     // Init database
-    const database = new appwrite.Database(client);
+    const database = new client.Database(client);
 
     // db id 67c9ffd9003d68236514
     // items collection id 67c9ffe6001c17071bb7
