@@ -25,7 +25,7 @@ export default function BarItem({ name, image, size, price, canadian }) {
                 <div className="bar-item-logo">
                     <img src={imgurl(image)} alt="" />
 
-                    {(canadian == 'true') && (
+                    {(canadian === 'true') && (
                         <img
                             className="canadian"
                             src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Maple_Leaf.svg/900px-Maple_Leaf.svg.png?20190127193104"
