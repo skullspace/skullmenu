@@ -1,6 +1,6 @@
 import React from 'react';
 // import appwrite
-import { Client as Appwrite, Databases, account } from 'appwrite';
+import { Client as Appwrite, Databases, Account } from 'appwrite';
 
 import BarItem from './components/BarItem';
 import Footer from './components/Footer';
@@ -16,6 +16,8 @@ export default function App() {
         endpoint: "https://api.cloud.shotty.tech/v1",
         project: "67c9ff7a0013c21e2b40",
     });
+
+    const account = new Account(client);
 
     const promise = account.createAnonymousSession();
 
