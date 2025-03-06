@@ -24,29 +24,26 @@ export default function App() {
     const categories = [];
     const items = [];
 
-    const itemsSubscription = client.subscribe.bind(client)([
+    client.subscribe.bind(client)([
         "databases.67c9ffd9003d68236514.collections.67c9ffe6001c17071bb7.documents",
-    ]);
-    const categoriesSubscription = client.subscribe.bind(client)([
-        "databases.67c9ffd9003d68236514.collections.67c9ffdd0039c4e09c9a.documents",
-    ]);
+    ], database.listDocuments('67c9ffe6001c17071bb7').then((response) => {
+        items.length = 0;
+        response.documents.forEach((item) => {
+            items.push(item);
+        }
+        );
+    }));
 
-    categoriesSubscription.then(() => {
-        database.listDocuments('67c9ffdd0039c4e09c9a').then((response) => {
-            categories.length = 0;
-            response.documents.forEach((category) => {
-                categories.push(category);
-            });
-        });
-    });
-    itemsSubscription.then(() => {
-        database.listDocuments('67c9ffe6001c17071bb7').then((response) => {
-            items.length = 0;
-            response.documents.forEach((item) => {
-                items.push(item);
-            });
-        });
-    });
+
+    client.subscribe.bind(client)([
+        "databases.67c9ffd9003d68236514.collections.67c9ffdd0039c4e09c9a.documents",
+    ], database.listDocuments('67c9ffdd0039c4e09c9a').then((response) => {
+        categories.length = 0;
+        response.documents.forEach((category) => {
+            categories.push(category);
+        }
+        );
+    }));
 
 
 
