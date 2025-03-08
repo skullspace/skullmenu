@@ -22,13 +22,11 @@ export default function App() {
         client.setEndpoint('https://api.cloud.shotty.tech/v1').setProject('67c9ff7a0013c21e2b40');
 
         const account = new Account(client);
-        const promise = account.createAnonymousSession();
+        // if not logged in, create anonymous session
 
-        promise.then(function (response) {
-            console.log(response); // Success
-        }, function (error) {
-            console.log(error); // Failure
-        });
+        if (!account.getJWT()) {
+            account.createAnonymousSession()
+        }
 
         // Init database
         const database = new Databases(client);
