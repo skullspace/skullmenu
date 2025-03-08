@@ -40,18 +40,22 @@ export default function App() {
 
         client.subscribe.bind(client)([
             "databases.67c9ffd9003d68236514.collections.67c9ffe6001c17071bb7.documents",
-        ], database.listDocuments('67c9ffd9003d68236514', '67c9ffe6001c17071bb7').then((response) => {
-            setItems(response.documents);
-            console.log(response.documents);
-        }));
+        ], async () => {
+            let data = await database.listDocuments('67c9ffd9003d68236514', '67c9ffe6001c17071bb7')
+            setItems(data.documents);
+            console.log(data.documents);
+
+        })
 
 
         client.subscribe.bind(client)([
             "databases.67c9ffd9003d68236514.collections.67c9ffdd0039c4e09c9a.documents",
-        ], database.listDocuments('67c9ffd9003d68236514', '67c9ffdd0039c4e09c9a').then((response) => {
-            setCategories(response.documents);
-            console.log(response.documents);
-        }));
+        ], async () => {
+            let data = await database.listDocuments('67c9ffd9003d68236514', '67c9ffe6001c17071bb7')
+            setItems(data.documents);
+            console.log(data.documents);
+
+        })
 
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
