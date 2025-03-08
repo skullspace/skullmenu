@@ -111,7 +111,7 @@ export default function App() {
                             {
                                 // items.filter((item) => item.category === section.id)
                                 //     .map((item) => BarItem(item))
-                                items.filter((item) => item.categories.$id === section.$id)
+                                items.filter((item) => item.categories.$id === section.$id && item.shown === true)
                                     .map((item) => BarItem(item))
 
                             }
