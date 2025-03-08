@@ -17,16 +17,24 @@ export default function App() {
     const [categories, setCategories] = useState([]);
     const [items, setItems] = useState([]);
 
+    client.setEndpoint('https://api.cloud.shotty.tech/v1').setProject('67c9ff7a0013c21e2b40');
+
+    const account = new Account(client);
+    // if not logged in, create anonymous session
+
+    account.get().then(() => {
+        console.log('logged in');
+    }).catch(() => {
+        console.log('not logged in');
+        account.createSession('anonymous').then(() => {
+            console.log('created session');
+        }).catch((error) => {
+            console.log('error creating session', error);
+        });
+    });
+
 
     useEffect(() => {
-        client.setEndpoint('https://api.cloud.shotty.tech/v1').setProject('67c9ff7a0013c21e2b40');
-
-        const account = new Account(client);
-        // if not logged in, create anonymous session
-
-        if (!account.getJWT()) {
-            account.createAnonymousSession()
-        }
 
         // Init database
         const database = new Databases(client);
@@ -37,7 +45,7 @@ export default function App() {
 
 
         client.subscribe.bind(client)([
-            "databases.67c9ffd9003d68236514.collections.67c9ffe6001c17071bb7.documents",
+            "databases.67c9ffd9003d68236514.collections.67c9ffdd0039c4e09c9a.documents",
         ], async () => {
             let data = await database.listDocuments('67c9ffd9003d68236514', '67c9ffdd0039c4e09c9a')
 
@@ -46,9 +54,25 @@ export default function App() {
 
         })
 
+        database.listDocuments('67c9ffd9003d68236514', '67c9ffdd0039c4e09c9a').then((data) => {
+            setCategories(data.documents);
+            console.log(data.documents);
+        }).catch((error) => {
+            console.log('error getting categories', error);
+        });
+
+        database.listDocuments('67c9ffd9003d68236514', '67c9ffe6001c17071bb7').then((data) => {
+            setItems(data.documents);
+            console.log(data.documents);
+        }).catch((error) => {
+            console.log('error getting items', error);
+        });
+
+
+
 
         client.subscribe.bind(client)([
-            "databases.67c9ffd9003d68236514.collections.67c9ffdd0039c4e09c9a.documents",
+            "databases.67c9ffd9003d68236514.collections.67c9ffe6001c17071bb7.documents",
         ], async () => {
             let data = await database.listDocuments('67c9ffd9003d68236514', '67c9ffe6001c17071bb7')
             setItems(data.documents);
