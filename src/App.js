@@ -41,8 +41,9 @@ export default function App() {
         client.subscribe.bind(client)([
             "databases.67c9ffd9003d68236514.collections.67c9ffe6001c17071bb7.documents",
         ], async () => {
-            let data = await database.listDocuments('67c9ffd9003d68236514', '67c9ffe6001c17071bb7')
-            setItems(data.documents);
+            let data = await database.listDocuments('67c9ffd9003d68236514', '67c9ffdd0039c4e09c9a')
+
+            setCategories(data.documents);
             console.log(data.documents);
 
         })
