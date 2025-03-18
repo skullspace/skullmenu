@@ -84,12 +84,6 @@ export default function App() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-
-
-
-
-
-
     return (
         <content onClick={() => document.documentElement.requestFullscreen()}>
             <video
