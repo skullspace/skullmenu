@@ -40,7 +40,7 @@ body {
 hr {
     border: none;
     border-bottom: 2px solid #eee;
-    margin: 0.71vh auto 0.71vh auto;
+    margin: 0.5vh auto 0.5vh auto;
     opacity: 0.5;
 }
 
@@ -67,7 +67,7 @@ main {
     flex-wrap: wrap;
     justify-content: center;
 
-    padding: 0 5vh;
+    padding: 0 3vh;
 }
 
 .bar-section {
@@ -81,7 +81,7 @@ main {
 
 .bar-section-grid {
     width: 40vw;
-    padding: 2vh 0;
+    padding: 0vh 0;
     /* display: grid;
     grid-template-columns: auto auto; */
     display: flex;
@@ -100,7 +100,7 @@ main {
 }
 
 .bar-item-title {
-    margin-bottom: 0.18vh;
+    margin-bottom: 0.12vh;
     font-size: 2vh;
 }
 .bar-item-size {
@@ -112,13 +112,13 @@ main {
 
 .bar-item-logo {
     margin-right: 1.2vw;
-    height: 7vh;
+    height: 5vh;
     width: 4vw;
 }
 
 .bar-item-logo img {
     width: 100%;
-    height: 100%;
+    height: 80%;
     object-fit: contain;
     margin: auto;
 }
