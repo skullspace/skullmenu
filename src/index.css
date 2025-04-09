@@ -111,9 +111,9 @@ main {
 }
 
 .bar-item-logo {
-    margin-right: 1.2vw;
-    height: 5vh;
-    width: 4vw;
+    margin-right: 0;
+    height: 7vh;
+    width: 5vw;
 }
 
 .bar-item-logo img {
@@ -125,10 +125,10 @@ main {
 
 .canadian {
     position: relative;
-    top: -3vh;
-    left: 2vw;
-    height: 50% !important;
-    width: 50% !important;
+    top: -2vh;
+    left: 2.25vw;
+    height: 40% !important;
+    width: 40% !important;
 }
 
 .bar-item-skull {
