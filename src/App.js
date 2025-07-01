@@ -92,6 +92,7 @@ export default function App() {
                 autoPlay={true}
                 loop={true}
                 muted={true}
+                playbackRate={0.5}
             />
 
             <Header />
