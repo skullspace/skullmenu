@@ -5,10 +5,10 @@
 
 * {
   text-shadow:
-    -1px -1px 0 black,
-     1px -1px 0 black,
-    -1px  1px 0 black,
-     1px  1px 0 black;
+    -.1vh -.1vh 0 black,
+     .1vh -.1vh 0 black,
+    -.1vh  .1vh 0 black,
+     .1vh  .1vh 0 black;
 }
 
 h1,
@@ -47,7 +47,7 @@ body {
 
 hr {
     border: none;
-    border-bottom: 2px solid #eee;
+    border-bottom: .1vh solid #eee;
     margin: 0.5vh auto 0.5vh auto;
     opacity: 0.5;
 }
@@ -116,7 +116,7 @@ main {
     font-size: 2.2vh;
 }
 .bar-item-price {
-    font-size: 18px
+    font-size: 2vh
 }
 
 .bar-item-logo {
@@ -143,8 +143,8 @@ main {
 .bar-item-skull {
     vertical-align: middle;
     width: 1.42vh;
-    margin-left: 1px;
-    margin-right: 2px;
+    margin-left: .1vh;
+    margin-right: .2vh;
     margin-top: -0.18vh;
 }
 
