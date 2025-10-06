@@ -1,5 +1,6 @@
 import React from 'react';
 import SkullSpaceMemberLogo from './SkullSpaceMemberLogo';
+import { useAppwrite } from '../API/api';
 
 const CAD = new Intl.NumberFormat('en-ca', {
     style: 'currency',
@@ -11,7 +12,7 @@ const imgurl = (file) => {
 }
 
 export default function BarItem({ name, image, size, price, canadian }) {
-    console.log(canadian);
+    const { settings } = useAppwrite();
     const textStyle = image ? { flex: 1 } : {};
     return (
         <div
@@ -37,7 +38,7 @@ export default function BarItem({ name, image, size, price, canadian }) {
                 <span className="bar-item-price">
                     {CAD.format(price / 100)} (
                     <SkullSpaceMemberLogo />
-                    {CAD.format(price / 100 / 2)})
+                    {CAD.format((price / 100) * (1 - (settings?.member_discount / 100)) || 1)})
                 </span>
             </div>
         </div>

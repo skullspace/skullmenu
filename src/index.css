@@ -28,7 +28,7 @@ body {
     overflow: hidden; /* for the video element, only works on firefox?? */
 }
 
-content {
+#menu {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
