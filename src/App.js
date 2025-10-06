@@ -25,7 +25,7 @@ export default function App() {
                 {categories.filter((cat) => !cat.alcohol || alcoholEnabled).map((section) => (
                     <section className="bar-section">
                         <hr style={{ width: '50%' }} />
-                        <h2 className="bar-section-title">{section.name === '🚫 Non-Alcoholic' && !alcoholEnabled ? '🥤 Beverages' : section.name}</h2>
+                        <h2 className="bar-section-title">{section.name === '🚫 Non-Alcoholic' && !alcoholEnabled ? 'Beverages' : section.name}</h2>
                         <div className="bar-section-grid">
                             {
                                 // items.filter((item) => item.category === section.id)
