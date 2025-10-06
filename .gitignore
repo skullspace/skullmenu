@@ -14,7 +14,6 @@
 # misc
 /.vs
 .hintrc
-.prettierrc
 
 .DS_Store
 .env.local
