@@ -19,13 +19,8 @@ export default function App() {
     const account = new Account(client);
     // if not logged in, create anonymous session
 
-    account.get().then(() => {
-        console.log('logged in');
-    }).catch(() => {
-        console.log('not logged in');
-        account.createAnonymousSession().then(() => {
-            console.log('created session');
-        }).catch((error) => {
+    account.get().catch(() => {
+        account.createAnonymousSession().catch((error) => {
             console.log('error creating session', error);
         });
     });
@@ -43,20 +38,16 @@ export default function App() {
         ], async () => {
             let data = await database.listDocuments('67c9ffd9003d68236514', '67c9ffdd0039c4e09c9a')
             setCategories(data.documents);
-            console.log(data.documents);
-
         })
 
         database.listDocuments('67c9ffd9003d68236514', '67c9ffdd0039c4e09c9a').then((data) => {
             setCategories(data.documents);
-            console.log(data.documents);
         }).catch((error) => {
             console.log('error getting categories', error);
         });
 
         database.listDocuments('67c9ffd9003d68236514', '67c9ffe6001c17071bb7').then((data) => {
             setItems(data.documents);
-            console.log(data.documents);
         }).catch((error) => {
             console.log('error getting items', error);
         });
@@ -66,7 +57,6 @@ export default function App() {
         ], async () => {
             let data = await database.listDocuments('67c9ffd9003d68236514', '67c9ffe6001c17071bb7')
             setItems(data.documents);
-            console.log(data.documents);
 
         })
 
