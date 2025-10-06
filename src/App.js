@@ -6,10 +6,7 @@ import BarItem from './components/BarItem';
 import Footer from './components/Footer';
 import Header from './components/Header';
 
-
 export default function App() {
-
-
 
     // Init appwrite
     const client = new Appwrite();
@@ -33,9 +30,7 @@ export default function App() {
         });
     });
 
-
     useEffect(() => {
-
         // Init database
         const database = new Databases(client);
 
@@ -43,12 +38,10 @@ export default function App() {
         // items collection id 67c9ffe6001c17071bb7
         // category collection id 67c9ffdd0039c4e09c9a
 
-
         client.subscribe.bind(client)([
             "databases.67c9ffd9003d68236514.collections.67c9ffdd0039c4e09c9a.documents",
         ], async () => {
             let data = await database.listDocuments('67c9ffd9003d68236514', '67c9ffdd0039c4e09c9a')
-
             setCategories(data.documents);
             console.log(data.documents);
 
@@ -68,9 +61,6 @@ export default function App() {
             console.log('error getting items', error);
         });
 
-
-
-
         client.subscribe.bind(client)([
             "databases.67c9ffd9003d68236514.collections.67c9ffe6001c17071bb7.documents",
         ], async () => {
@@ -80,14 +70,11 @@ export default function App() {
 
         })
 
-
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-
     const hour = new Date().getHours();
     const alcoholEnabled = (hour >= 15 || hour < 2);
-
 
     return (
         <content onClick={() => document.documentElement.requestFullscreen()}>
@@ -99,9 +86,7 @@ export default function App() {
                 muted={true}
                 playbackRate={0.5}
             />
-
             <Header />
-
             <main>
                 {categories.filter((cat) => !cat.alcohol || alcoholEnabled).map((section) => (
                     <section className="bar-section">
@@ -116,13 +101,10 @@ export default function App() {
 
                             }
                         </div>
-
                     </section>
                 ))}
             </main>
-
             <hr />
-
             <Footer />
         </content>
     );

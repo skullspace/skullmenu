@@ -10,12 +10,9 @@ const imgurl = (file) => {
     return `https://api.cloud.shotty.tech/v1/storage/buckets/67ca0bcc002993f0ef2f/files/${file}/view?project=67c9ff7a0013c21e2b40`;
 }
 
-
-
 export default function BarItem({ name, image, size, price, canadian }) {
     console.log(canadian);
     const textStyle = image ? { flex: 1 } : {};
-
     return (
         <div
             className="bar-item"
@@ -24,7 +21,6 @@ export default function BarItem({ name, image, size, price, canadian }) {
             {image ? (
                 <div className="bar-item-logo">
                     <img src={imgurl(image)} alt="" />
-
                     {(canadian === 'true') && (
                         <img
                             className="canadian"
@@ -33,10 +29,7 @@ export default function BarItem({ name, image, size, price, canadian }) {
                         />
                     )}
                 </div>
-
-            ) : (
-                ''
-            )}
+            ) : ('')}
             <div style={textStyle}>
                 <h4 className="bar-item-title">
                     {name}
