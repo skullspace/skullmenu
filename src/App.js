@@ -8,7 +8,7 @@ import Header from './components/Header';
 export default function App() {
     const { categories, items, settings } = useAppwrite();
     const hour = new Date().getHours();
-    const [alcoholStart, alcoholEnd] = settings ? [settings.bar_start, settings.bar_start_end] : [15, 2];
+    const [alcoholStart, alcoholEnd] = settings ? [settings.bar_start, settings.bar_end] : [15, 2];
     const alcoholEnabled = (hour >= alcoholStart || hour < alcoholEnd);
 
     return (
