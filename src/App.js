@@ -9,7 +9,11 @@ export default function App() {
     const { categories, items, settings } = useAppwrite();
     const hour = new Date().getHours();
     const [alcoholStart, alcoholEnd] = settings ? [settings.bar_start, settings.bar_end] : [15, 2];
-    const alcoholEnabled = (hour >= alcoholStart || hour < alcoholEnd);
+    console.log(alcoholStart, alcoholEnd);
+    console.log(hour);
+    console.log((hour >= alcoholStart && hour < alcoholEnd))
+
+    const alcoholEnabled = (hour >= alcoholStart && hour < alcoholEnd);
 
     return (
         <div id='menu' onClick={() => document.documentElement.requestFullscreen()}>
