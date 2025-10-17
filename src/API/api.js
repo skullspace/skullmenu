@@ -8,7 +8,7 @@ import { useMemo, useState, useEffect, useCallback } from 'react';
 
 const config = {
     endpoint: 'https://api.cloud.shotty.tech/v1',
-    project: '67c9ff7a0013c21e2b40',
+    project: '68f2ac7b00002e7563a8',
     databases: {
         products: {
             id: '67c9ffd9003d68236514',
