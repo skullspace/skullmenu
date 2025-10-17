@@ -19,6 +19,8 @@ export default function App() {
 
     const alcoholEnabled = s <= e ? (hour >= s && hour < e) : (hour >= s || hour < e);
 
+    console.log(categories, items, settings, alcoholEnabled);
+
     return (
         <div id='menu' onClick={() => document.documentElement.requestFullscreen()}>
             < video
