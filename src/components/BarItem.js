@@ -8,7 +8,7 @@ const CAD = new Intl.NumberFormat('en-ca', {
 });
 
 const imgurl = (file) => {
-    return `https://api.cloud.shotty.tech/v1/storage/buckets/67ca0bcc002993f0ef2f/files/${file}/view?project=67c9ff7a0013c21e2b40`;
+    return `https://api.cloud.shotty.tech/v1/storage/buckets/67ca0bcc002993f0ef2f/files/${file}/view?project=68f2ac7b00002e7563a8`;
 }
 
 export default function BarItem({ name, image, size, price, canadian, alcohol, alcoholic, selfcheck_price }) {
