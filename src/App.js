@@ -60,7 +60,11 @@ export default function App() {
                                 </h2>
                                 <div className="bar-section-grid">
                                     {visibleItems.map((item) => (
-                                        <BarItem key={item.$id} {...item} />
+                                        <BarItem
+                                            key={item.$id}
+                                            {...item}
+                                            category={section.name}
+                                        />
                                     ))}
                                 </div>
                             </section>

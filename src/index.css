@@ -64,16 +64,14 @@ hr {
 }
 
 main {
-    /* display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 5vh; */
-
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-
-    padding: 0 3vh;
+    align-items: center;
+    gap: 4vh 4vw;
+    margin-top: 2vh;
+    margin-bottom: 2vh;
 }
 
 .bar-section {
@@ -86,7 +84,7 @@ main {
 }
 
 .bar-section-grid {
-    width: 30vw;
+    width: 45vw;
     padding: 0vh 0;
     /* display: grid;
     grid-template-columns: auto auto; */
@@ -139,10 +137,10 @@ main {
 
 .bar-item-skull {
     vertical-align: middle;
-    width: 1.42vh;
+    width: 3vh;
     margin-left: 0.1vh;
-    margin-right: 0.2vh;
-    margin-top: -0.18vh;
+    margin-right: 0.7vh;
+    margin-top: -0.5vh;
 }
 
 .bar-background-video {

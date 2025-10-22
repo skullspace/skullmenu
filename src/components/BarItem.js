@@ -9,21 +9,38 @@ const CAD = new Intl.NumberFormat('en-ca', {
 
 const imgurl = (file) => {
     return `https://api.cloud.shotty.tech/v1/storage/buckets/67ca0bcc002993f0ef2f/files/${file}/view?project=68f2ac7b00002e7563a8`;
-}
+};
 
-export default function BarItem({ name, image, size, price, canadian, alcohol, alcoholic, selfcheck_price }) {
+export default function BarItem({
+    name,
+    menu_name,
+    image,
+    size,
+    price,
+    canadian,
+    selfcheck_price,
+    category,
+    dbl_price
+}) {
     const { settings } = useAppwrite();
     const textStyle = image ? { flex: 1 } : {};
 
     // determine whether alcohol sales are currently enabled (handles wrap-around ranges)
-    const [rawStart, rawEnd] = settings ? [settings.bar_start, settings.bar_end] : [15, 2];
+    const [rawStart, rawEnd] = settings
+        ? [settings.bar_start, settings.bar_end]
+        : [15, 2];
     const alcoholStart = Number(rawStart ?? 15);
     const alcoholEnd = Number(rawEnd ?? 2);
     const hour = new Date().getHours();
     const normHour = (h) => (((Number(h) || 0) % 24) + 24) % 24;
     const s = normHour(alcoholStart);
     const e = normHour(alcoholEnd);
-    const alcoholEnabled = s <= e ? (hour >= s && hour < e) : (hour >= s || hour < e);
+    const alcoholEnabled =
+        s <= e ? hour >= s && hour < e : hour >= s || hour < e;
+
+    const mixed = category === '🥃 Mixed Drinks/Shots';
+
+    const food = category === 'Food';
 
     return (
         <div
@@ -33,7 +50,7 @@ export default function BarItem({ name, image, size, price, canadian, alcohol, a
             {image ? (
                 <div className="bar-item-logo">
                     <img src={imgurl(image)} alt="" />
-                    {(canadian === 'true') && (
+                    {canadian === 'true' && (
                         <img
                             className="canadian"
                             src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Maple_Leaf.svg/900px-Maple_Leaf.svg.png?20190127193104"
@@ -41,21 +58,56 @@ export default function BarItem({ name, image, size, price, canadian, alcohol, a
                         />
                     )}
                 </div>
-            ) : ('')}
+            ) : (
+                ''
+            )}
             <div style={textStyle}>
-                <h4 className="bar-item-title">
-                    {name}
-                </h4>{size ? <><span className="bar-item-size"><i>{size}mL</i></span> <br /></> : <></>}
+                <h4 className="bar-item-title">{menu_name || name}</h4>
+                {size ? (
+                    <>
+                        <span className="bar-item-size">
+                            <i>{size}mL</i>
+                        </span>{' '}
+                        <br />
+                    </>
+                ) : (
+                    <></>
+                )}
                 <span className="bar-item-price">
-                    {alcoholEnabled ? CAD.format(price / 100) : CAD.format((selfcheck_price || price) / 100)}
-                    {
-                        alcoholEnabled && settings?.member_discount ? (
-                            <>(
-                                <SkullSpaceMemberLogo />
-                                {CAD.format(((price / 100) * (1 - (Number(settings?.member_discount ?? 0) / 100))))})
-                            </>
-                        ) : null
-                    }
+                    {food && dbl_price ? (
+                        <>
+                            1 Slice: {CAD.format(price / 100)}
+                            <br />2 Slices: {CAD.format(dbl_price / 100)}
+                        </>
+                    ) : mixed ? (
+                        <span>Single: {CAD.format(price / 100)}</span>
+                    ) : (
+                        <>
+                            {alcoholEnabled
+                                ? CAD.format(price / 100)
+                                : CAD.format((selfcheck_price || price) / 100)}
+                        </>
+                    )}
+
+                    <br />
+                    {mixed && (
+                        <span className="bar-item-mixed">
+                            Double: {CAD.format(dbl_price / 100)}
+                        </span>
+                    )}
+                    {/* {alcoholEnabled && settings?.member_discount ? (
+                        <>
+                            (
+                            <SkullSpaceMemberLogo />
+                            {CAD.format(
+                                (price / 100) *
+                                    (1 -
+                                        Number(settings?.member_discount ?? 0) /
+                                            100)
+                            )}
+                            )
+                        </>
+                    ) : null} */}
                 </span>
             </div>
         </div>
