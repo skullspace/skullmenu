@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import './theme.css';
 import { useAppwrite } from './API/api';
 
 import BarItem from './components/BarItem';
@@ -22,20 +23,29 @@ export default function App() {
     const alcoholEnabled =
         s <= e ? hour >= s && hour < e : hour >= s || hour < e;
 
-    console.log(categories, items, settings, alcoholEnabled);
+    useEffect(() => {
+        const html = document.documentElement;
+        if (alcoholEnabled) html.classList.add('dark');
+        else html.classList.remove('dark');
+
+        // optional: set data-theme attribute for debugging / CSS selectors
+        html.setAttribute('data-theme', alcoholEnabled ? 'dark' : 'light');
+    }, [alcoholEnabled]);
 
     return (
         <div
             id="menu"
             onClick={() => document.documentElement.requestFullscreen()}
         >
-            <video
-                className="bar-background-video"
-                src="background.webm"
-                autoPlay={true}
-                loop={true}
-                muted={true}
-            />
+            {alcoholEnabled && (
+                <video
+                    className="bar-background-video"
+                    src="background.webm"
+                    autoPlay={true}
+                    loop={true}
+                    muted={true}
+                />
+            )}
             <Header />
             <main>
                 {categories

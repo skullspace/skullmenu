@@ -1,0 +1,215 @@
+/* Theme variables and transitions */
+:root {
+    --bg: #e0e0e0;
+    --text: #111;
+    --muted: #666;
+    --hr: rgba(0, 0, 0, 0.15);
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    --video-opacity: 0.08;
+}
+
+/* Dark overrides when .dark is present on <html> */
+html.dark {
+    --bg: #000;
+    --text: #eee;
+    --muted: #bbb;
+    --hr: rgba(255, 255, 255, 0.15);
+    --card-bg: transparent;
+    --card-shadow: none;
+    --video-opacity: 0.33;
+}
+
+/* Smooth transitions for color properties */
+html,
+body,
+#menu,
+.bar-item,
+.bar-section-title,
+.bar-item-price,
+.bar-item-size {
+    transition: background-color 280ms ease, color 280ms ease,
+        box-shadow 280ms ease;
+}
+
+/* Apply variables to existing classes (base rules - override the rest of your CSS as needed) */
+body {
+    background-color: var(--bg);
+    color: var(--text);
+}
+
+hr {
+    border-bottom-color: var(--hr);
+}
+
+.bar-background-video {
+    opacity: var(--video-opacity);
+}
+
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+* {
+    text-shadow: -0.1vh -0.1vh 0 var(--bg), 0.1vh -0.1vh 0 var(--bg),
+        -0.1vh 0.1vh 0 var(--bg), 0.1vh 0.1vh 0 var(--bg);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+html,
+body {
+    margin: 0;
+}
+
+html,
+body {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* for the video element, only works on firefox?? */
+}
+
+#menu {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 90vh;
+}
+
+body {
+    font-family: 'Doppio One';
+    width: 100%;
+}
+
+hr {
+    border: none;
+    border-bottom: 0.1vh solid;
+    margin: 0.5vh auto 0.5vh auto;
+    opacity: 0.5;
+}
+
+.bar-header {
+    text-align: center;
+}
+
+.bar-logo {
+    filter: saturate(1.6);
+    width: 40vh;
+}
+
+.bar-subtitle {
+    font-size: 3.5vh;
+    font-weight: normal;
+}
+
+main {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 4vh 4vw;
+    margin-top: 2vh;
+    margin-bottom: 2vh;
+}
+
+.bar-section {
+    text-align: center;
+}
+
+.bar-section-title {
+    font-size: 4vh;
+    font-weight: normal;
+}
+
+.bar-section-grid {
+    width: 45vw;
+    padding: 0vh 0;
+    /* display: grid;
+    grid-template-columns: auto auto; */
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+.bar-item {
+    width: 15vw;
+    display: flex;
+    text-align: left;
+    padding: 1vh 0vw;
+    align-items: center;
+}
+
+.bar-item-title {
+    margin-bottom: 0.12vh;
+    font-size: 2.5vh;
+}
+.bar-item-size {
+    font-size: 2.2vh;
+}
+.bar-item-price {
+    font-size: 2vh;
+}
+
+.bar-item-logo {
+    margin-right: 0;
+    height: 7vh;
+    width: 5vw;
+}
+
+.bar-item-logo img {
+    width: 100%;
+    height: 80%;
+    object-fit: contain;
+    margin: auto;
+}
+
+.canadian {
+    position: relative;
+    top: -2vh;
+    left: 2.25vw;
+    height: 40% !important;
+    width: 40% !important;
+}
+
+.bar-item-skull {
+    vertical-align: middle;
+    width: 3vh;
+    margin-left: 0.1vh;
+    margin-right: 0.7vh;
+    margin-top: -0.5vh;
+}
+
+.bar-background-video {
+    position: absolute;
+    width: 100%;
+    z-index: -1000;
+    left: 50%;
+    top: 50%;
+    transform: translateX(-50%) translateY(-50%) scale(2);
+    opacity: 0.33;
+}
+
+.bar-footer {
+    text-align: center;
+    font-size: 2.2vh;
+}
+
+@media (max-width: 1000px) {
+    .bar-section-grid {
+        width: 80vw;
+    }
+
+    .bar-item {
+        width: 50vw;
+    }
+}
