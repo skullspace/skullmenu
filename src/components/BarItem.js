@@ -1,5 +1,4 @@
 import React from 'react';
-import SkullSpaceMemberLogo from './SkullSpaceMemberLogo';
 import { useAppwrite } from '../API/api';
 
 const CAD = new Intl.NumberFormat('en-ca', {
