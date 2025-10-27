@@ -46,7 +46,7 @@ export default function App() {
                     muted={true}
                 />
             )}
-            <Header />
+            <Header settings={settings} />
             <main>
                 {categories
                     .filter((cat) => !cat.alcohol || alcoholEnabled)
@@ -71,6 +71,7 @@ export default function App() {
                                 <div className="bar-section-grid">
                                     {visibleItems.map((item) => (
                                         <BarItem
+                                            settings={settings}
                                             key={item.$id}
                                             {...item}
                                             category={section.name}
@@ -82,7 +83,7 @@ export default function App() {
                     })}
             </main>
             <hr />
-            <Footer />
+            <Footer settings={settings} />
         </div>
     );
 }

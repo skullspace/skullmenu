@@ -24,7 +24,7 @@ const config = {
             }
         }
     }
-}
+};
 
 function createClient() {
     const client = new Appwrite();
@@ -42,6 +42,7 @@ export function useAppwrite() {
     const account = useMemo(() => new Account(client), [client]);
 
     const refreshCategories = useCallback(async () => {
+        console.log('refreshing categories');
         try {
             const data = await databases.listDocuments(
                 config.databases.products.id,
@@ -54,6 +55,7 @@ export function useAppwrite() {
     }, [databases]);
 
     const refreshItems = useCallback(async () => {
+        console.log('refreshing items');
         try {
             const data = await databases.listDocuments(
                 config.databases.products.id,
@@ -66,6 +68,7 @@ export function useAppwrite() {
     }, [databases]);
 
     const refreshData = useCallback(async () => {
+        console.log('refreshing data');
         try {
             const data = await databases.listDocuments(
                 config.databases.data.id,
@@ -75,7 +78,7 @@ export function useAppwrite() {
             let c = {};
             d.forEach((i) => {
                 c[i.key] = i.value;
-            })
+            });
             setData(c || {});
         } catch (err) {
             console.error('error getting data', err);
@@ -83,6 +86,7 @@ export function useAppwrite() {
     }, [databases]);
 
     useEffect(() => {
+        console.log('setting up appwrite subscriptions');
         let mounted = true;
 
         // Ensure anonymous session exists (run once)
@@ -104,52 +108,51 @@ export function useAppwrite() {
         refreshData();
 
         // subscribe to realtime updates
-        const topicsCategories = [
-            `databases.${config.databases.products.id}.collections.${config.databases.products.collections.categories}.documents`
-        ];
-        const topicsItems = [
-            `databases.${config.databases.products.id}.collections.${config.databases.products.collections.items}.documents`
-        ];
-        const topicsData = [
-            `databases.${config.databases.data.id}.collections.${config.databases.data.collections.config}.documents`
-        ];
+        const topicsCategories = `databases.${config.databases.products.id}.tables.${config.databases.products.collections.categories}.rows`;
+        const topicsItems = `databases.${config.databases.products.id}.tables.${config.databases.products.collections.items}.rows`;
+        const topicsData = `databases.${config.databases.data.id}.tables.${config.databases.data.collections.config}.rows`;
 
-        const subCategories = client.subscribe(topicsCategories, async () => {
-            if (!mounted) return;
-            await refreshCategories();
-        });
-        const subItems = client.subscribe(topicsItems, async () => {
+        const topics = [topicsItems, topicsCategories, topicsData];
+        console.log('subscribing to topics', topics);
+        const sub = client.subscribe(topics, async (res) => {
+            console.log('items update received', res);
             if (!mounted) return;
             await refreshItems();
-        });
-        const subData = client.subscribe(topicsData, async () => {
-            if (!mounted) return;
+            await refreshCategories();
             await refreshData();
         });
 
         return () => {
+            console.log('unsubscribing from appwrite');
             mounted = false;
             // cleanup unsubscribe - handle function or object shape
             try {
-                if (typeof subCategories === 'function') subCategories();
-                else if (subCategories && typeof subCategories.unsubscribe === 'function') subCategories.unsubscribe();
+                if (typeof sub === 'function') sub();
             } catch (e) {
-                // ignore
-            }
-            try {
-                if (typeof subItems === 'function') subItems();
-                else if (subItems && typeof subItems.unsubscribe === 'function') subItems.unsubscribe();
-            } catch (e) {
-                // ignore
-            }
-            try {
-                if (typeof subData === 'function') subData();
-                else if (subData && typeof subData.unsubscribe === 'function') subData.unsubscribe();
-            } catch (e) {
-                // ignore
+                console.error('error during unsubscribe', e);
             }
         };
     }, [account, client, refreshCategories, refreshItems, refreshData]);
+
+    useEffect(() => {
+        console.log('account changed', account);
+    }, [account]);
+
+    useEffect(() => {
+        console.log('client changed', client);
+    }, [client]);
+
+    useEffect(() => {
+        console.log('refreshCategories changed', refreshCategories);
+    }, [refreshCategories]);
+
+    useEffect(() => {
+        console.log('refreshItems changed', refreshItems);
+    }, [refreshItems]);
+
+    useEffect(() => {
+        console.log('refreshData changed', refreshData);
+    }, [refreshData]);
 
     return {
         client,

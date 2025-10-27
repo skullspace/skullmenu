@@ -1,5 +1,4 @@
 import React from 'react';
-import { useAppwrite } from '../API/api';
 
 const CAD = new Intl.NumberFormat('en-ca', {
     style: 'currency',
@@ -11,6 +10,7 @@ const imgurl = (file) => {
 };
 
 export default function BarItem({
+    settings,
     name,
     menu_name,
     image,
@@ -21,7 +21,6 @@ export default function BarItem({
     category,
     dbl_price
 }) {
-    const { settings } = useAppwrite();
     const textStyle = image ? { flex: 1 } : {};
 
     // determine whether alcohol sales are currently enabled (handles wrap-around ranges)

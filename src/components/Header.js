@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react';
 
-import { useAppwrite } from '../API/api';
-
-export default function Header() {
-    const { settings } = useAppwrite();
+export default function Header({ settings }) {
     const [rawStart, rawEnd] = settings
         ? [settings.bar_start, settings.bar_end]
         : [15, 2];

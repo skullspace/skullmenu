@@ -1,10 +1,7 @@
 import React from 'react';
 import SkullSpaceMemberLogo from './SkullSpaceMemberLogo';
-import { useAppwrite } from '../API/api';
 
-export default function Footer() {
-    const { settings } = useAppwrite();
-
+export default function Footer({ settings }) {
     // only show footer if alcohol is enabled
     if (!settings) return null;
 
@@ -14,18 +11,18 @@ export default function Footer() {
     const normHour = (h) => (((Number(h) || 0) % 24) + 24) % 24;
     const s = normHour(alcoholStart);
     const e = normHour(alcoholEnd);
-    const alcoholEnabled = s <= e ? (hour >= s && hour < e) : (hour >= s || hour < e);
+    const alcoholEnabled =
+        s <= e ? hour >= s && hour < e : hour >= s || hour < e;
 
     if (!alcoholEnabled) return null;
 
     return (
-
-        <footer className="bar-footer" >
+        <footer className="bar-footer">
             <em>
                 <SkullSpaceMemberLogo />
-                SkullSpace members receieve a <strong>{settings?.member_discount || 0}% discount</strong>.
+                SkullSpace members receieve a{' '}
+                <strong>{settings?.member_discount || 0}% discount</strong>.
             </em>
         </footer>
-    )
+    );
 }
-
