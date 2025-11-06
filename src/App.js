@@ -56,13 +56,7 @@ export default function App() {
                                 return false;
                             if (!item.shown) return false;
 
-                            const displayName = (
-                                item.menu_name ||
-                                item.name ||
-                                ''
-                            )
-                                .toString()
-                                .trim();
+                            const displayName = item.name.toString().trim();
                             if (displayName.toUpperCase().endsWith('DBL'))
                                 return false;
 
