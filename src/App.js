@@ -20,8 +20,22 @@ export default function App() {
     const s = normHour(alcoholStart);
     const e = normHour(alcoholEnd);
 
-    const alcoholEnabled =
-        s <= e ? hour >= s && hour < e : hour >= s || hour < e;
+    const [alcoholEnabled, setAlcoholEnabled] = React.useState(
+        s <= e ? hour >= s && hour < e : hour >= s || hour < e
+    );
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const currentHour = new Date().getHours();
+            const isAlcoholEnabled =
+                s <= e
+                    ? currentHour >= s && currentHour < e
+                    : currentHour >= s || currentHour < e;
+            setAlcoholEnabled(isAlcoholEnabled);
+        }, 60000); // Run every minute
+
+        return () => clearInterval(interval); // Cleanup on unmount
+    }, [s, e]);
 
     useEffect(() => {
         const html = document.documentElement;
