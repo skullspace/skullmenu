@@ -51,11 +51,23 @@ export default function App() {
                 {categories
                     .filter((cat) => !cat.alcohol || alcoholEnabled)
                     .map((section) => {
-                        const visibleItems = items.filter(
-                            (item) =>
-                                item.categories?.$id === section.$id &&
-                                item.shown
-                        );
+                        const visibleItems = items.filter((item) => {
+                            if (item.categories?.$id !== section.$id)
+                                return false;
+                            if (!item.shown) return false;
+
+                            const displayName = (
+                                item.menu_name ||
+                                item.name ||
+                                ''
+                            )
+                                .toString()
+                                .trim();
+                            if (displayName.toUpperCase().endsWith('DBL'))
+                                return false;
+
+                            return true;
+                        });
                         if (!visibleItems || visibleItems.length === 0)
                             return null;
 
