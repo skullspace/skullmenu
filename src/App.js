@@ -33,8 +33,12 @@ export default function App() {
                     : currentHour >= s || currentHour < e;
             setAlcoholEnabled(isAlcoholEnabled);
         }, 60000); // Run once then again every minute
-
-        interval();
+        const currentHour = new Date().getHours();
+        const isAlcoholEnabled =
+            s <= e
+                ? currentHour >= s && currentHour < e
+                : currentHour >= s || currentHour < e;
+        setAlcoholEnabled(isAlcoholEnabled);
 
         return () => clearInterval(interval); // Cleanup on unmount
     }, [s, e]);
