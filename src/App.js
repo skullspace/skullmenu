@@ -32,7 +32,9 @@ export default function App() {
                     ? currentHour >= s && currentHour < e
                     : currentHour >= s || currentHour < e;
             setAlcoholEnabled(isAlcoholEnabled);
-        }, 60000); // Run every minute
+        }, 60000); // Run once then again every minute
+
+        interval();
 
         return () => clearInterval(interval); // Cleanup on unmount
     }, [s, e]);
