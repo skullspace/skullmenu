@@ -16,11 +16,12 @@ export default function Header({ settings }) {
     const [imgSrc, setImgSrc] = React.useState();
 
     useEffect(() => {
-        if (alcoholEnabled) {
-            setImgSrc('skullspace_dark.svg');
-        } else {
-            setImgSrc('skullspace_light.svg');
-        }
+        // if (alcoholEnabled) {
+        //     setImgSrc('skullspace_dark.svg');
+        // } else {
+        //     setImgSrc('skullspace_light.svg');
+        // }
+        setImgSrc('skullspace_dark.svg');
     }, [alcoholEnabled]);
 
     return (
