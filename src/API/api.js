@@ -1,4 +1,4 @@
-import { Client as Appwrite, Databases, Account } from 'appwrite';
+import { Client as Appwrite, Databases, Account, Query } from 'appwrite';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
