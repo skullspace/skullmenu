@@ -45,11 +45,11 @@ export default function App() {
 
     useEffect(() => {
         const html = document.documentElement;
-        if (alcoholEnabled) html.classList.add('dark');
-        else html.classList.remove('dark');
+        /*if (alcoholEnabled)*/ html.classList.add('dark');
+        /*else html.classList.remove('dark');*/
 
         // optional: set data-theme attribute for debugging / CSS selectors
-        html.setAttribute('data-theme', alcoholEnabled ? 'dark' : 'light');
+        // html.setAttribute('data-theme', alcoholEnabled ? 'dark' : 'light');
     }, [alcoholEnabled]);
 
     return (
