@@ -59,8 +59,7 @@ export function useAppwrite() {
         try {
             const data = await databases.listDocuments(
                 config.databases.products.id,
-                config.databases.products.collections.items
-            );
+                config.databases.products.collections.items, [Query.limit(5000)]);
             setItems(data.documents || []);
         } catch (err) {
             console.error('error getting items', err);
