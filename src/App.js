@@ -72,7 +72,7 @@ export default function App() {
                     .filter((cat) => !cat.alcohol || alcoholEnabled)
                     .map((section) => {
                         const visibleItems = items.filter((item) => {
-                            if (item.categories?.$id !== section.$id)
+                            if (item.categories !== section.$id)
                                 return false;
                             if (!item.shown) return false;
 

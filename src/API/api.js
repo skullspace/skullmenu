@@ -14,7 +14,7 @@ const config = {
             id: '67c9ffd9003d68236514',
             collections: {
                 categories: '67c9ffdd0039c4e09c9a',
-                items: '67c9ffe6001c17071bb7'
+                items: 'pos_items'
             }
         },
         data: {
@@ -46,7 +46,8 @@ export function useAppwrite() {
         try {
             const data = await databases.listDocuments(
                 config.databases.products.id,
-                config.databases.products.collections.categories
+                config.databases.products.collections.categories,
+                [Query.limit(100)]
             );
             setCategories(data.documents || []);
         } catch (err) {
@@ -54,13 +55,24 @@ export function useAppwrite() {
         }
     }, [databases]);
 
+    // Normalize a pos_items document to the field names this app already
+    // expects (carried over from the old Items_old schema).
+    function normalizePosItem(doc) {
+        return {
+            ...doc,
+            price: doc.sale_price,
+            menu_name: doc.name_menu,
+            selfcheck_price: doc.self_pricing
+        };
+    }
+
     const refreshItems = useCallback(async () => {
         console.log('refreshing items');
         try {
             const data = await databases.listDocuments(
                 config.databases.products.id,
                 config.databases.products.collections.items, [Query.limit(5000)]);
-            setItems(data.documents || []);
+            setItems((data.documents || []).map(normalizePosItem));
         } catch (err) {
             console.error('error getting items', err);
         }

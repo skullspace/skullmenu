@@ -5,10 +5,6 @@ const CAD = new Intl.NumberFormat('en-ca', {
     currency: 'CAD'
 });
 
-const imgurl = (file) => {
-    return `https://api.cloud.shotty.tech/v1/storage/buckets/67ca0bcc002993f0ef2f/files/${file}/view?project=68f2ac7b00002e7563a8`;
-};
-
 export default function BarItem({
     settings,
     name,
@@ -47,8 +43,8 @@ export default function BarItem({
         >
             {image ? (
                 <div className="bar-item-logo">
-                    <img src={imgurl(image)} alt="" />
-                    {canadian === 'true' && (
+                    <img src={image} alt="" />
+                    {canadian === true && (
                         <img
                             className="canadian"
                             src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Maple_Leaf.svg/900px-Maple_Leaf.svg.png?20190127193104"
