@@ -21,15 +21,7 @@ export default function App() {
     const s = normHour(alcoholStart);
     const e = normHour(alcoholEnd);
 
-    // Staff can force alcohol off from the POS regardless of the scheduled
-    // hours (e.g. running out, a licensing issue) -- it only ever suppresses,
-    // never forces alcohol to show outside the configured hours.
-    const alcoholManuallyDisabled =
-        settings?.alcohol_disabled === true ||
-        settings?.alcohol_disabled === 'true';
-
-    // Re-derive on a once-a-minute tick (for the clock) and whenever the
-    // manual override changes (which arrives instantly via realtime).
+    // Re-derive once a minute so the schedule crosses over on its own.
     const [tick, setTick] = React.useState(0);
     useEffect(() => {
         const interval = setInterval(() => setTick((t) => t + 1), 60000);
@@ -37,13 +29,12 @@ export default function App() {
     }, []);
 
     const alcoholEnabled = useMemo(() => {
-        if (alcoholManuallyDisabled) return false;
         const currentHour = new Date().getHours();
         return s <= e
             ? currentHour >= s && currentHour < e
             : currentHour >= s || currentHour < e;
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [s, e, alcoholManuallyDisabled, tick]);
+    }, [s, e, tick]);
 
     useEffect(() => {
         document.documentElement.classList.add('dark');

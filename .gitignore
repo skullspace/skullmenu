@@ -24,4 +24,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.log
+
+# design canvas working files (not app source)
+/mockup
 
