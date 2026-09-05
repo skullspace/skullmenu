@@ -1,12 +1,21 @@
-import React from 'react';
+import CategoryIcon from './CategoryIcon';
 
 const CAD = new Intl.NumberFormat('en-ca', {
     style: 'currency',
     currency: 'CAD'
 });
 
+// The maple leaf from the Canadian flag (public domain), recolored to
+// currentColor so it follows the app's accent color.
+function CanadianLeaf() {
+    return (
+        <svg viewBox="-2015 -2000 4030 4030" fill="currentColor">
+            <path d="m-90 2030 45-863a95 95 0 0 0-111-98l-859 151 116-320a65 65 0 0 0-20-73l-941-762 212-99a65 65 0 0 0 34-79l-186-572 542 115a65 65 0 0 0 73-38l105-247 423 454a65 65 0 0 0 111-57l-204-1052 327 189a65 65 0 0 0 91-27l332-652 332 652a65 65 0 0 0 91 27l327-189-204 1052a65 65 0 0 0 111 57l423-454 105 247a65 65 0 0 0 73 38l542-115-186 572a65 65 0 0 0 34 79l212 99-941 762a65 65 0 0 0-20 73l116 320-859-151a95 95 0 0 0-111 98l45 863z" />
+        </svg>
+    );
+}
+
 export default function BarItem({
-    settings,
     name,
     menu_name,
     image,
@@ -15,95 +24,58 @@ export default function BarItem({
     canadian,
     selfcheck_price,
     category,
-    dbl_price
+    dbl_price,
+    alcoholEnabled
 }) {
-    const textStyle = image ? { flex: 1 } : {};
-
-    // determine whether alcohol sales are currently enabled (handles wrap-around ranges)
-    const [rawStart, rawEnd] = settings
-        ? [settings.bar_start, settings.bar_end]
-        : [15, 2];
-    const alcoholStart = Number(rawStart ?? 15);
-    const alcoholEnd = Number(rawEnd ?? 2);
-    const hour = new Date().getHours();
-    const normHour = (h) => (((Number(h) || 0) % 24) + 24) % 24;
-    const s = normHour(alcoholStart);
-    const e = normHour(alcoholEnd);
-    const alcoholEnabled =
-        s <= e ? hour >= s && hour < e : hour >= s || hour < e;
-
     const mixed = category === '🥃 Mixed Drinks/Shots';
-
     const food = category === 'Food';
+    const showPriceStack = mixed || (food && dbl_price);
 
     return (
-        <div
-            className="bar-item"
-            style={{ justifyContent: image ? 'left' : 'center' }}
-        >
-            {image ? (
-                <div className="bar-item-logo">
+        <div className="bar-row">
+            <div className="bar-thumb">
+                {image ? (
                     <img src={image} alt="" />
-                    {canadian === true && (
-                        <img
-                            className="canadian"
-                            src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Maple_Leaf.svg/900px-Maple_Leaf.svg.png?20190127193104"
-                            alt="Canadian Flag"
-                        />
+                ) : (
+                    <CategoryIcon name={category} />
+                )}
+            </div>
+            <div className="bar-row-text">
+                <div className="bar-row-name">
+                    {menu_name || name}
+                    {canadian === true && <CanadianLeaf />}
+                </div>
+                {size ? <div className="bar-row-size">{size} mL</div> : null}
+            </div>
+            {showPriceStack ? (
+                <div className="bar-row-price-stack">
+                    {food ? (
+                        <>
+                            <div className="line">
+                                1 Slice <b>{CAD.format(price / 100)}</b>
+                            </div>
+                            <div className="line">
+                                2 Slices <b>{CAD.format(dbl_price / 100)}</b>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="line">
+                                Single <b>{CAD.format(price / 100)}</b>
+                            </div>
+                            <div className="line">
+                                Double <b>{CAD.format(dbl_price / 100)}</b>
+                            </div>
+                        </>
                     )}
                 </div>
             ) : (
-                ''
+                <div className="bar-row-price">
+                    {CAD.format(
+                        (alcoholEnabled ? price : selfcheck_price || price) / 100
+                    )}
+                </div>
             )}
-            <div style={textStyle}>
-                <h4 className="bar-item-title">{menu_name || name}</h4>
-                {size ? (
-                    <>
-                        <span className="bar-item-size">
-                            <i>{size}mL</i>
-                        </span>{' '}
-                        <br />
-                    </>
-                ) : (
-                    <></>
-                )}
-                <span className="bar-item-price">
-                    {food && dbl_price ? (
-                        <>
-                            1 Slice: {CAD.format(price / 100)}
-                            <br />2 Slices: {CAD.format(dbl_price / 100)}
-                        </>
-                    ) : mixed ? (
-                        <span>Single: {CAD.format(price / 100)}</span>
-                    ) : (
-                        <>
-                            {alcoholEnabled
-                                ? CAD.format(price / 100)
-                                : CAD.format((selfcheck_price || price) / 100)}
-                        </>
-                    )}
-
-                    <br />
-                    {mixed && (
-                        <span className="bar-item-mixed">
-                            Double: {CAD.format(dbl_price / 100)}
-                        </span>
-                    )}
-                    {/* {alcoholEnabled && settings?.member_discount ? (
-                        <>
-                            (
-                            <SkullSpaceMemberLogo />
-                            {CAD.format(
-                                (price / 100) *
-                                    (1 -
-                                        Number(settings?.member_discount ?? 0) /
-                                            100)
-                            )}
-                            )
-                        </>
-                    ) : null} */}
-                </span>
-            </div>
         </div>
     );
 }

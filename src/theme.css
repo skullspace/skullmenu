@@ -1,215 +1,276 @@
-/* Theme variables and transitions */
 :root {
-    --bg: #e0e0e0;
-    --text: #111;
-    --muted: #666;
-    --hr: rgba(0, 0, 0, 0.15);
-    --card-bg: rgba(255, 255, 255, 0.7);
-    --card-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-    --video-opacity: 0.08;
-}
-
-/* Dark overrides when .dark is present on <html> */
-html.dark {
-    --bg: #000;
-    --text: #eee;
-    --muted: #bbb;
-    --hr: rgba(255, 255, 255, 0.15);
-    --card-bg: transparent;
-    --card-shadow: none;
-    --video-opacity: 0.33;
-}
-
-/* Smooth transitions for color properties */
-html,
-body,
-#menu,
-.bar-item,
-.bar-section-title,
-.bar-item-price,
-.bar-item-size {
-    transition: background-color 280ms ease, color 280ms ease,
-        box-shadow 280ms ease;
-}
-
-/* Apply variables to existing classes (base rules - override the rest of your CSS as needed) */
-body {
-    background-color: var(--bg);
-    color: var(--text);
-}
-
-hr {
-    border-bottom-color: var(--hr);
-}
-
-.bar-background-video {
-    opacity: var(--video-opacity);
-}
-
-*::before,
-*::after {
-    box-sizing: border-box;
+    --accent: #e78b4a;
+    --bg: #050505;
+    --text: #f2f0ee;
+    --muted: #9a9a9a;
+    --muted-2: #8a8a8a;
+    --line: #262626;
+    --line-soft: #1c1c1c;
+    --thumb-bg: #141414;
 }
 
 * {
-    text-shadow: -0.1vh -0.1vh 0 var(--bg), 0.1vh -0.1vh 0 var(--bg),
-        -0.1vh 0.1vh 0 var(--bg), 0.1vh 0.1vh 0 var(--bg);
+    box-sizing: border-box;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
 html,
 body {
     margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Open Sans', system-ui, sans-serif;
 }
 
-html,
-body {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden; /* for the video element, only works on firefox?? */
+a {
+    color: var(--accent);
+}
+a:hover {
+    color: #ffffff;
 }
 
 #menu {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    height: 90vh;
+    overflow: hidden;
 }
 
-body {
-    font-family: 'Doppio One';
-    width: 100%;
-}
-
-hr {
-    border: none;
-    border-bottom: 0.1vh solid;
-    margin: 0.5vh auto 0.5vh auto;
-    opacity: 0.5;
-}
-
-.bar-header {
-    text-align: center;
-}
-
-.bar-logo {
-    filter: saturate(1.6);
-    width: 40vh;
-}
-
-.bar-subtitle {
-    font-size: 3.5vh;
-    font-weight: normal;
-}
-
-main {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 4vh 4vw;
-    margin-top: 2vh;
-    margin-bottom: 2vh;
-}
-
-.bar-section {
-    text-align: center;
-}
-
-.bar-section-title {
-    font-size: 4vh;
-    font-weight: normal;
-}
-
-.bar-section-grid {
-    width: 45vw;
-    padding: 0vh 0;
-    /* display: grid;
-    grid-template-columns: auto auto; */
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-}
-
-.bar-item {
-    width: 15vw;
-    display: flex;
-    text-align: left;
-    padding: 1vh 0vw;
-    align-items: center;
-}
-
-.bar-item-title {
-    margin-bottom: 0.12vh;
-    font-size: 2.5vh;
-}
-.bar-item-size {
-    font-size: 2.2vh;
-}
-.bar-item-price {
-    font-size: 2vh;
-}
-
-.bar-item-logo {
-    margin-right: 0;
-    height: 7vh;
-    width: 5vw;
-}
-
-.bar-item-logo img {
-    width: 100%;
-    height: 80%;
-    object-fit: contain;
-    margin: auto;
-}
-
-.canadian {
-    position: relative;
-    top: -2vh;
-    left: 2.25vw;
-    height: 40% !important;
-    width: 40% !important;
-}
-
-.bar-item-skull {
-    vertical-align: middle;
-    width: 3vh;
-    margin-left: 0.1vh;
-    margin-right: 0.7vh;
-    margin-top: -0.5vh;
-}
-
-.bar-background-video {
+.grain {
     position: absolute;
+    inset: -10%;
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    z-index: 0;
+}
+
+/* topbar */
+.bar-topbar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 3.15vh 2.92vw 2.04vh 2.92vw;
+    border-bottom: 0.28vh solid var(--accent);
+}
+.bar-logo-wrap {
+    display: flex;
+    align-items: center;
+}
+.bar-logo {
+    height: 5.74vh;
+    width: auto;
+    display: block;
+}
+.bar-status {
+    display: flex;
+    align-items: center;
+    gap: 1.11vh;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+    font-size: 2.22vh;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+.bar-status.open {
+    color: var(--accent);
+}
+.bar-status.closed {
+    color: var(--muted);
+}
+.bar-status-dot {
+    width: 1.3vh;
+    height: 1.3vh;
+    flex-shrink: 0;
+    clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%);
+}
+.bar-status.open .bar-status-dot {
+    background: var(--accent);
+}
+.bar-status.closed .bar-status-dot {
+    background: #6a6a6a;
+}
+
+/* category columns */
+.bar-columns {
+    position: relative;
+    z-index: 2;
+    flex: 1;
+    display: flex;
+    gap: 0;
+    padding: 2.41vh 2.92vw 0 2.92vw;
+    min-height: 0;
+    overflow: hidden;
+}
+.bar-column {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 0 1.46vw;
+    border-left: 0.09vh solid var(--line);
+}
+.bar-column:first-child {
+    padding-left: 0;
+    border-left: none;
+}
+
+.bar-col-header {
+    display: flex;
+    align-items: baseline;
+    gap: 0.83vw;
+    padding-bottom: 1.11vh;
+    margin-bottom: 1.67vh;
+    border-bottom: 0.37vh solid var(--accent);
+}
+.bar-col-icon {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--accent);
+}
+.bar-col-icon svg {
+    width: 3.15vh;
+    height: 3.15vh;
+}
+.bar-col-title {
+    font-family: 'Doppio One', serif;
+    font-size: 2.87vh;
+    line-height: 1.1;
+    color: var(--text);
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+}
+
+.bar-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.37vh;
+}
+/* When only a couple of categories have items, each column gets the extra
+   width -- spread its rows into two balanced sub-columns instead of one
+   long, sparse list. */
+.bar-rows.multi {
+    columns: 2;
+    column-gap: 2.08vw;
+    display: block;
+}
+.bar-rows.multi .bar-row {
+    break-inside: avoid;
+}
+
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.83vw;
+    padding: 0.74vh 0;
+    border-bottom: 0.09vh solid var(--line-soft);
+}
+.bar-thumb {
+    width: 7.22vh;
+    height: 7.22vh;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--thumb-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+}
+.bar-thumb img {
     width: 100%;
-    z-index: -1000;
-    left: 50%;
-    top: 50%;
-    transform: translateX(-50%) translateY(-50%) scale(2);
-    opacity: 0.33;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    filter: saturate(1.05);
+}
+.bar-thumb svg {
+    width: 2.96vh;
+    height: 2.96vh;
+    opacity: 0.3;
+}
+.bar-row-text {
+    flex: 1;
+    min-width: 0;
+}
+.bar-row-name {
+    font-family: 'Doppio One', serif;
+    font-size: 2.22vh;
+    line-height: 1.15;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.42vw;
+    overflow-wrap: break-word;
+}
+.bar-row-name svg {
+    width: 2.04vh;
+    height: 2.04vh;
+    flex-shrink: 0;
+    color: #f00;
+}
+.bar-row-size {
+    font-family: 'Open Sans', sans-serif;
+    font-style: italic;
+    font-size: 1.48vh;
+    color: var(--muted-2);
+}
+.bar-row-price {
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+    font-size: 2.22vh;
+    color: var(--accent);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.bar-row-price-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.19vh;
+    flex-shrink: 0;
+}
+.bar-row-price-stack .line {
+    font-size: 1.3vh;
+    color: #a8a8a8;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.bar-row-price-stack .line b {
+    color: var(--accent);
+    font-size: 1.67vh;
 }
 
+/* footer */
 .bar-footer {
-    text-align: center;
-    font-size: 2.2vh;
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.83vw;
+    padding: 1.3vh 0 1.85vh 0;
+    border-top: 0.28vh solid var(--accent);
+    margin-top: auto;
 }
-
-@media (max-width: 1000px) {
-    .bar-section-grid {
-        width: 80vw;
-    }
-
-    .bar-item {
-        width: 50vw;
-    }
+.bar-item-skull {
+    width: 2.41vh;
+    height: auto;
+    display: block;
+}
+.bar-footer-text {
+    font-family: 'Open Sans', sans-serif;
+    font-style: italic;
+    font-size: 2.04vh;
+    color: #a8a8a8;
+}
+.bar-footer-text b {
+    color: var(--accent);
+    font-style: normal;
 }
