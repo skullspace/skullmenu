@@ -45,7 +45,7 @@ export default function BarItem({
                     {menu_name || name}
                     {canadian === true && <CanadianLeaf />}
                 </div>
-                {size ? <div className="bar-row-size">{size} mL</div> : null}
+                {size && !food ? <div className="bar-row-size">{size} mL</div> : null}
             </div>
             {showPriceStack ? (
                 <div className="bar-row-price-stack">
