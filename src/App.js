@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo } from 'react';
 import './theme.css';
 import { useAppwrite } from './API/api';
+import { isWithinBarHours } from './utils/barHours';
 
 import BarItem from './components/BarItem';
 import CategoryIcon from './components/CategoryIcon';
@@ -9,32 +10,27 @@ import Grain from './components/Grain';
 import Header from './components/Header';
 
 export default function App() {
-    const { categories, items, settings } = useAppwrite();
+    const { categories, items, settings, activeEvent } = useAppwrite();
 
-    const [rawStart, rawEnd] = settings
-        ? [settings.bar_start, settings.bar_end]
-        : [15, 2];
-    const alcoholStart = Number(rawStart ?? 15);
-    const alcoholEnd = Number(rawEnd ?? 2);
-
-    const normHour = (h) => (((Number(h) || 0) % 24) + 24) % 24;
-    const s = normHour(alcoholStart);
-    const e = normHour(alcoholEnd);
-
-    // Re-derive once a minute so the schedule crosses over on its own.
+    // Re-derive once a minute so the bar-hours schedule crosses over on its own, without
+    // waiting on a data change/reload.
     const [tick, setTick] = React.useState(0);
     useEffect(() => {
         const interval = setInterval(() => setTick((t) => t + 1), 60000);
         return () => clearInterval(interval);
     }, []);
 
-    const alcoholEnabled = useMemo(() => {
-        const currentHour = new Date().getHours();
-        return s <= e
-            ? currentHour >= s && currentHour < e
-            : currentHour >= s || currentHour < e;
+    // Same gate as the staff POS's own pos.js: the active event's sellsAlcohol/bar-hours
+    // window, further overridden off by the admin app's alcohol_override_disabled kill
+    // switch -- so this menu board and the POS always agree on whether alcohol is on sale
+    // right now, both driven by the same event/config data instead of a separate static
+    // bar_start/bar_end schedule.
+    const alcoholOverrideDisabled = settings?.alcohol_override_disabled === 'true';
+    const alcoholEnabled = useMemo(
+        () => !alcoholOverrideDisabled && isWithinBarHours(activeEvent, new Date()),
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [s, e, tick]);
+        [activeEvent, alcoholOverrideDisabled, tick]
+    );
 
     useEffect(() => {
         document.documentElement.classList.add('dark');
@@ -82,7 +78,7 @@ export default function App() {
             onClick={() => document.documentElement.requestFullscreen()}
         >
             <Grain />
-            <Header alcoholEnabled={alcoholEnabled} barEndHour={e} />
+            <Header alcoholEnabled={alcoholEnabled} barCloseTime={activeEvent?.barCloseTime} />
             <main className="bar-columns">
                 {visibleSections.map(({ section, visibleItems }) => (
                     <div className="bar-column" key={section.$id}>

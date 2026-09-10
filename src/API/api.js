@@ -14,7 +14,8 @@ const config = {
             id: '67c9ffd9003d68236514',
             collections: {
                 categories: '67c9ffdd0039c4e09c9a',
-                items: 'pos_items'
+                items: 'pos_items',
+                events: '68e400210008d19bb5c9'
             }
         },
         data: {
@@ -36,6 +37,7 @@ export function useAppwrite() {
     const [categories, setCategories] = useState([]);
     const [items, setItems] = useState([]);
     const [data, setData] = useState(null);
+    const [activeEvent, setActiveEvent] = useState(null);
 
     const client = useMemo(() => createClient(), []);
     const databases = useMemo(() => new Databases(client), [client]);
@@ -96,6 +98,22 @@ export function useAppwrite() {
         }
     }, [databases]);
 
+    // Fetches the currently active event (isActive:true), if any -- same shape and query as
+    // POS's own fetchActiveEvent(), so both surfaces agree on whether alcohol is being sold.
+    const fetchActiveEvent = useCallback(async () => {
+        try {
+            const result = await databases.listDocuments(
+                config.databases.products.id,
+                config.databases.products.collections.events,
+                [Query.equal('isActive', true), Query.limit(1)]
+            );
+            setActiveEvent(result.documents?.[0] || null);
+        } catch (err) {
+            console.error('error fetching active event', err);
+            setActiveEvent(null);
+        }
+    }, [databases]);
+
     useEffect(() => {
         console.log('setting up appwrite subscriptions');
         let mounted = true;
@@ -117,13 +135,15 @@ export function useAppwrite() {
         refreshCategories();
         refreshItems();
         refreshData();
+        fetchActiveEvent();
 
         // subscribe to realtime updates
         const topicsCategories = `databases.${config.databases.products.id}.tables.${config.databases.products.collections.categories}.rows`;
         const topicsItems = `databases.${config.databases.products.id}.tables.${config.databases.products.collections.items}.rows`;
         const topicsData = `databases.${config.databases.data.id}.tables.${config.databases.data.collections.config}.rows`;
+        const topicsEvents = `databases.${config.databases.products.id}.tables.${config.databases.products.collections.events}.rows`;
 
-        const topics = [topicsItems, topicsCategories, topicsData];
+        const topics = [topicsItems, topicsCategories, topicsData, topicsEvents];
         console.log('subscribing to topics', topics);
         const sub = client.subscribe(topics, async (res) => {
             console.log('items update received', res);
@@ -131,6 +151,7 @@ export function useAppwrite() {
             await refreshItems();
             await refreshCategories();
             await refreshData();
+            await fetchActiveEvent();
         });
 
         return () => {
@@ -143,7 +164,7 @@ export function useAppwrite() {
                 console.error('error during unsubscribe', e);
             }
         };
-    }, [account, client, refreshCategories, refreshItems, refreshData]);
+    }, [account, client, refreshCategories, refreshItems, refreshData, fetchActiveEvent]);
 
     useEffect(() => {
         console.log('account changed', account);
@@ -174,6 +195,8 @@ export function useAppwrite() {
         items,
         refreshCategories,
         refreshItems,
-        settings: data
+        settings: data,
+        activeEvent,
+        fetchActiveEvent
     };
 }
