@@ -116,8 +116,12 @@ export function useAppwrite() {
         }
     }, [databases]);
 
-    // Fetches the currently active event, if any, via the Ticketing-ActiveEvent function --
-    // this board's anonymous session cannot read the `Events` collection directly (it is
+    // Fetches the currently active event, if any, via the Ticketing-ActiveEvent function. The
+    // event is stored whole: the alcohol gate (utils/barHours.js) reads the bar window off it,
+    // preferring the barOpensAt/barClosesAt instants and falling back to the legacy
+    // barOpenTime/barCloseTime wall clocks, so nothing may be filtered out on the way in.
+    //
+    // This board's anonymous session cannot read the `Events` collection directly (it is
     // restricted to the admin team, and widening it would hand a screen facing the room every
     // event's revenue/profit rollup). A failure comes back as ACTIVE_EVENT_UNAVAILABLE rather
     // than as an empty "no event tonight": both hide alcohol, but only the fault gets a banner on

@@ -26,6 +26,30 @@ describe("fetchActiveEvent", () => {
 	});
 
 	test("returns the event's public projection, bar-hours fields included", async () => {
+		// Mid-migration shape: the instants the gate prefers AND the legacy wall clocks it falls
+		// back to, both carried through untouched. barHours.js decides between them, not this.
+		const event = {
+			$id: "evt1",
+			name: "HAX 7.0",
+			sellsAlcohol: true,
+			barOpenTime: "18:00",
+			barCloseTime: "02:00",
+			barOpensAt: "2026-09-11T23:00:00.000Z",
+			barClosesAt: "2026-09-12T07:00:00.000Z",
+		};
+		const functions = {
+			createExecution: jest.fn().mockResolvedValue(execution({ event })),
+		};
+		await expect(fetchActiveEvent(functions)).resolves.toEqual({
+			status: ACTIVE_EVENT_OK,
+			event,
+			error: null,
+		});
+	});
+
+	test("passes through a row that has not been backfilled yet, untouched", async () => {
+		// A function build that predates the instants, or a row the backfill has not reached.
+		// Nothing here may invent or drop a field -- the gate's fallback needs the row as-is.
 		const event = {
 			$id: "evt1",
 			name: "HAX 7.0",
@@ -36,11 +60,10 @@ describe("fetchActiveEvent", () => {
 		const functions = {
 			createExecution: jest.fn().mockResolvedValue(execution({ event })),
 		};
-		await expect(fetchActiveEvent(functions)).resolves.toEqual({
-			status: ACTIVE_EVENT_OK,
-			event,
-			error: null,
-		});
+		const result = await fetchActiveEvent(functions);
+		expect(result.status).toBe(ACTIVE_EVENT_OK);
+		expect(result.event).toEqual(event);
+		expect("barOpensAt" in result.event).toBe(false);
 	});
 
 	test("no event running is an answer, not a fault", async () => {

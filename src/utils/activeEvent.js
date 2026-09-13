@@ -8,6 +8,12 @@
  * columns stayed hidden at every hour. The function reads as the server and returns only the
  * door-safe projection of the event (no revenue/cogs/profit/tips columns ever leave the box).
  *
+ * That projection is passed through here whole and unfiltered. During the timestamp migration it
+ * carries the bar window in two shapes at once -- barOpensAt/barClosesAt (instants) and the
+ * legacy barOpenTime/barCloseTime wall clocks -- and utils/barHours.js is what prefers one and
+ * falls back to the other. Nothing is dropped on the way, so a row backfilled before this build
+ * ships, or a function build that predates the new fields, both still reach the gate intact.
+ *
  * The states below are deliberately the same two the POS's own
  * POS/src/utils/api.js#parseActiveEventExecution returns, parsed by the same three checks, so the
  * register and this board cannot end up with opposite readings of the same execution.

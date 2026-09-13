@@ -107,6 +107,28 @@ describe('useAppwrite active-event state', () => {
     });
 
     test('a live event reaches the board with its bar-hours window', async () => {
+        // Both shapes, carried whole: the barOpensAt/barClosesAt instants the alcohol gate now
+        // prefers and the legacy wall clocks it falls back to. The hook stores the event as it
+        // arrived -- utils/barHours.js is the only thing that chooses between them.
+        const event = {
+            $id: 'evt1',
+            name: 'HAX 7.0',
+            sellsAlcohol: true,
+            barOpenTime: '18:00',
+            barCloseTime: '02:00',
+            barOpensAt: '2026-09-11T23:00:00.000Z',
+            barClosesAt: '2026-09-12T07:00:00.000Z'
+        };
+        mockCreateExecution.mockResolvedValue(okExecution({ event }));
+
+        const { result } = renderHook(() => useAppwrite());
+
+        await waitFor(() => expect(result.current.activeEvent).toEqual(event));
+        expect(result.current.activeEventState.status).toBe(ACTIVE_EVENT_OK);
+    });
+
+    test('an un-backfilled event still reaches the board with its legacy window', async () => {
+        // A function build that predates the instants, or a row the backfill has not reached.
         const event = {
             $id: 'evt1',
             name: 'HAX 7.0',
@@ -119,6 +141,6 @@ describe('useAppwrite active-event state', () => {
         const { result } = renderHook(() => useAppwrite());
 
         await waitFor(() => expect(result.current.activeEvent).toEqual(event));
-        expect(result.current.activeEventState.status).toBe(ACTIVE_EVENT_OK);
+        expect('barOpensAt' in result.current.activeEvent).toBe(false);
     });
 });
