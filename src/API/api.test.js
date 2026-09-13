@@ -1,0 +1,124 @@
+import { renderHook, waitFor } from '@testing-library/react';
+
+// Appwrite's web SDK opens a websocket and talks to the network on construction, so the whole
+// module is stubbed. Names must start with `mock` to survive jest.mock hoisting.
+const mockListDocuments = jest.fn();
+const mockCreateExecution = jest.fn();
+const mockAccountGet = jest.fn();
+const mockCreateAnonymousSession = jest.fn();
+const mockSubscribe = jest.fn(() => jest.fn());
+
+// Plain constructors, not jest.fn(): react-scripts' jest config sets resetMocks, which would
+// strip a mockImplementation off these before the first test ran.
+jest.mock('appwrite', () => ({
+    Client: function Client() {
+        const client = {
+            setEndpoint: () => client,
+            setProject: () => client,
+            subscribe: (...args) => mockSubscribe(...args)
+        };
+        return client;
+    },
+    Databases: function Databases() {
+        return { listDocuments: (...args) => mockListDocuments(...args) };
+    },
+    Account: function Account() {
+        return {
+            get: (...args) => mockAccountGet(...args),
+            createAnonymousSession: (...args) =>
+                mockCreateAnonymousSession(...args)
+        };
+    },
+    Functions: function Functions() {
+        return { createExecution: (...args) => mockCreateExecution(...args) };
+    },
+    Query: { limit: (n) => `limit(${n})` }
+}));
+
+const { useAppwrite, ACTIVE_EVENT_UNAVAILABLE, ACTIVE_EVENT_OK } = require('./api');
+
+const okExecution = (body) => ({
+    status: 'completed',
+    responseStatusCode: 200,
+    responseBody: JSON.stringify(body)
+});
+
+beforeEach(() => {
+    mockSubscribe.mockReturnValue(jest.fn());
+    mockListDocuments.mockResolvedValue({ documents: [] });
+    mockAccountGet.mockResolvedValue({ $id: 'session' });
+    mockCreateExecution.mockResolvedValue(okExecution({ event: null }));
+});
+
+describe('useAppwrite initial fetches', () => {
+    test('the public menu reads do not wait on the anonymous-session bootstrap', async () => {
+        // Categories, pos_items and barData/config are all read("any"). A hung account.get() must
+        // cost us the alcohol gate, not the entire board.
+        mockAccountGet.mockReturnValue(new Promise(() => {}));
+
+        renderHook(() => useAppwrite());
+
+        await waitFor(() => expect(mockListDocuments).toHaveBeenCalledTimes(3));
+        expect(mockCreateExecution).not.toHaveBeenCalled();
+    });
+
+    test('the active-event call waits for the session, which is execute:["users"]', async () => {
+        let resolveSession;
+        mockAccountGet.mockReturnValue(
+            new Promise((resolve) => {
+                resolveSession = resolve;
+            })
+        );
+
+        renderHook(() => useAppwrite());
+        await waitFor(() => expect(mockListDocuments).toHaveBeenCalledTimes(3));
+        expect(mockCreateExecution).not.toHaveBeenCalled();
+
+        resolveSession({ $id: 'session' });
+        await waitFor(() => expect(mockCreateExecution).toHaveBeenCalledTimes(1));
+    });
+});
+
+describe('useAppwrite active-event state', () => {
+    test('a failed execution surfaces as unavailable, not as "no event tonight"', async () => {
+        mockCreateExecution.mockResolvedValue({
+            status: 'failed',
+            responseStatusCode: 0,
+            responseBody: ''
+        });
+
+        const { result } = renderHook(() => useAppwrite());
+
+        await waitFor(() =>
+            expect(result.current.activeEventState.status).toBe(
+                ACTIVE_EVENT_UNAVAILABLE
+            )
+        );
+        expect(result.current.activeEvent).toBeNull();
+    });
+
+    test('a real "no event tonight" is not reported as a fault', async () => {
+        const { result } = renderHook(() => useAppwrite());
+
+        await waitFor(() =>
+            expect(result.current.activeEventState.status).toBe(ACTIVE_EVENT_OK)
+        );
+        expect(result.current.activeEvent).toBeNull();
+    });
+
+    test('a live event reaches the board with its bar-hours window', async () => {
+        const event = {
+            $id: 'evt1',
+            name: 'HAX 7.0',
+            sellsAlcohol: true,
+            barOpenTime: '18:00',
+            barCloseTime: '02:00'
+        };
+        mockCreateExecution.mockResolvedValue(okExecution({ event }));
+
+        const { result } = renderHook(() => useAppwrite());
+
+        await waitFor(() => expect(result.current.activeEvent).toEqual(event));
+        expect(result.current.activeEventState.status).toBe(ACTIVE_EVENT_OK);
+    });
+});

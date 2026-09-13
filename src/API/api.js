@@ -1,9 +1,19 @@
-import { Client as Appwrite, Databases, Account, Query } from 'appwrite';
+import { Client as Appwrite, Databases, Account, Functions, Query } from 'appwrite';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
+import {
+    fetchActiveEvent as fetchActiveEventViaFunction,
+    ACTIVE_EVENT_OK,
+    ACTIVE_EVENT_UNAVAILABLE,
+    ACTIVE_EVENT_PENDING
+} from '../utils/activeEvent';
+
+export { ACTIVE_EVENT_OK, ACTIVE_EVENT_UNAVAILABLE, ACTIVE_EVENT_PENDING };
+
 // db id 67c9ffd9003d68236514
-// items collection id 67c9ffe6001c17071bb7
+// items collection id pos_items (the old 67c9ffe6001c17071bb7 / Items_old is retired -- it
+//   still holds the cost-of-goods columns, so nothing here should ever read it again)
 // category collection id 67c9ffdd0039c4e09c9a
 
 const config = {
@@ -14,8 +24,7 @@ const config = {
             id: '67c9ffd9003d68236514',
             collections: {
                 categories: '67c9ffdd0039c4e09c9a',
-                items: 'pos_items',
-                events: '68e400210008d19bb5c9'
+                items: 'pos_items'
             }
         },
         data: {
@@ -37,11 +46,15 @@ export function useAppwrite() {
     const [categories, setCategories] = useState([]);
     const [items, setItems] = useState([]);
     const [data, setData] = useState(null);
-    const [activeEvent, setActiveEvent] = useState(null);
+    // Two answers, never collapsed into one: ACTIVE_EVENT_OK with event === null means there is
+    // genuinely no event tonight; ACTIVE_EVENT_UNAVAILABLE means we could not ask. Both hide
+    // alcohol, but only the second is a fault, and only the second gets said on screen.
+    const [activeEventState, setActiveEventState] = useState(ACTIVE_EVENT_PENDING);
 
     const client = useMemo(() => createClient(), []);
     const databases = useMemo(() => new Databases(client), [client]);
     const account = useMemo(() => new Account(client), [client]);
+    const functions = useMemo(() => new Functions(client), [client]);
 
     const refreshCategories = useCallback(async () => {
         console.log('refreshing categories');
@@ -98,27 +111,34 @@ export function useAppwrite() {
         }
     }, [databases]);
 
-    // Fetches the currently active event (isActive:true), if any -- same shape and query as
-    // POS's own fetchActiveEvent(), so both surfaces agree on whether alcohol is being sold.
+    // Fetches the currently active event, if any, via the Ticketing-ActiveEvent function --
+    // this board's anonymous session cannot read the `Events` collection directly (it is
+    // restricted to the admin team, and widening it would hand a screen facing the room every
+    // event's revenue/profit rollup). A failure comes back as ACTIVE_EVENT_UNAVAILABLE rather
+    // than as an empty "no event tonight": both hide alcohol, but only the fault gets a banner on
+    // the board (App.js) so the room can see the gate is broken instead of assuming the bar shut.
     const fetchActiveEvent = useCallback(async () => {
-        try {
-            const result = await databases.listDocuments(
-                config.databases.products.id,
-                config.databases.products.collections.events,
-                [Query.equal('isActive', true), Query.limit(1)]
-            );
-            setActiveEvent(result.documents?.[0] || null);
-        } catch (err) {
-            console.error('error fetching active event', err);
-            setActiveEvent(null);
+        const result = await fetchActiveEventViaFunction(functions);
+        if (result.status === ACTIVE_EVENT_UNAVAILABLE) {
+            console.error('error fetching active event', result.error);
         }
-    }, [databases]);
+        setActiveEventState(result);
+    }, [functions]);
 
     useEffect(() => {
         console.log('setting up appwrite subscriptions');
         let mounted = true;
 
-        // Ensure anonymous session exists (run once)
+        // Initial fetch. Categories, pos_items and barData/config are all read("any"), so they
+        // must NOT wait on the session bootstrap below: a hung account request would otherwise
+        // hold back the entire menu instead of just the alcohol gate, and the board's whole job
+        // is to have prices on screen.
+        refreshCategories();
+        refreshItems();
+        refreshData();
+
+        // Ticketing-ActiveEvent, and only it, is execute:["users"] -- so ensure the anonymous
+        // session exists and wait for it before the first call, or every cold load races a 401.
         (async () => {
             try {
                 await account.get();
@@ -129,21 +149,21 @@ export function useAppwrite() {
                     console.error('error creating session', e);
                 }
             }
+            if (!mounted) return;
+            fetchActiveEvent();
         })();
 
-        // initial fetch
-        refreshCategories();
-        refreshItems();
-        refreshData();
-        fetchActiveEvent();
+        // The active event has no usable realtime channel here: Realtime only delivers rows the
+        // session can read, and this one cannot read `Events` at all. Poll it instead, so an
+        // event going live (or its bar hours being edited) still reaches the board mid-shift.
+        const eventPoll = setInterval(fetchActiveEvent, 60000);
 
         // subscribe to realtime updates
         const topicsCategories = `databases.${config.databases.products.id}.tables.${config.databases.products.collections.categories}.rows`;
         const topicsItems = `databases.${config.databases.products.id}.tables.${config.databases.products.collections.items}.rows`;
         const topicsData = `databases.${config.databases.data.id}.tables.${config.databases.data.collections.config}.rows`;
-        const topicsEvents = `databases.${config.databases.products.id}.tables.${config.databases.products.collections.events}.rows`;
 
-        const topics = [topicsItems, topicsCategories, topicsData, topicsEvents];
+        const topics = [topicsItems, topicsCategories, topicsData];
         console.log('subscribing to topics', topics);
         const sub = client.subscribe(topics, async (res) => {
             console.log('items update received', res);
@@ -157,6 +177,7 @@ export function useAppwrite() {
         return () => {
             console.log('unsubscribing from appwrite');
             mounted = false;
+            clearInterval(eventPoll);
             // cleanup unsubscribe - handle function or object shape
             try {
                 if (typeof sub === 'function') sub();
@@ -196,7 +217,8 @@ export function useAppwrite() {
         refreshCategories,
         refreshItems,
         settings: data,
-        activeEvent,
+        activeEvent: activeEventState.event,
+        activeEventState,
         fetchActiveEvent
     };
 }

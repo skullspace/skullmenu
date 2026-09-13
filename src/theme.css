@@ -95,6 +95,27 @@ a:hover {
 .bar-status.closed .bar-status-dot {
     background: #6a6a6a;
 }
+/* "we could not check", not "the bar is closed" -- warned in amber so it reads as a fault on the
+   board rather than as a normal closed bar. */
+.bar-status.unavailable {
+    color: #e8c05a;
+}
+.bar-status.unavailable .bar-status-dot {
+    background: #e8c05a;
+}
+.bar-alert {
+    position: relative;
+    z-index: 2;
+    padding: 1.11vh 2.92vw;
+    background: rgba(232, 192, 90, 0.12);
+    border-bottom: 0.19vh solid #e8c05a;
+    color: #e8c05a;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.85vh;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
 
 /* category columns */
 .bar-columns {
