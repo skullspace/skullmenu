@@ -4,9 +4,15 @@
  * screen) -- "HH:mm" strings, e.g. "18:00"/"02:00". Handles a window that crosses midnight
  * (close time earlier than open time means overnight).
  *
- * Ported verbatim from the POS app's own src/utils/barHours.js, so this menu board and the
- * staff POS always agree on whether alcohol is being sold right now -- both read the exact
- * same active event, the exact same way.
+ * Originally ported from the POS app's own src/utils/barHours.js. isWithinBarHours is still
+ * identical, but parseTimeToMinutes below is NOT -- this copy also accepts the bare "1800"
+ * form, POS's only accepts "HH:mm". So the two surfaces can disagree: an event saved as
+ * "1800" parses here (alcohol shown on the board) and returns null in POS (alcohol hidden on
+ * the till). The board would then advertise a drink the register refuses to ring up.
+ *
+ * The admin app's bar-hours field has no validation at entry, so "1800" is a shape an admin
+ * can genuinely save. Converging the two parsers -- or validating the field -- is the real
+ * fix; until then do not assume the board and the register agree.
  *
  * No active event, sellsAlcohol:false, or a missing/malformed time window all fail closed
  * (alcohol hidden).
