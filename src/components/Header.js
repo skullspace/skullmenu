@@ -1,4 +1,4 @@
-import { parseInstant, parseTimeToMinutes } from '../utils/barHours';
+import { parseInstant } from '../utils/barHours';
 
 // Renders "2:00 AM" from minutes-past-midnight.
 function formatMinutes(minutes) {
@@ -9,23 +9,23 @@ function formatMinutes(minutes) {
     return `${display}:${String(minutes % 60).padStart(2, '0')} ${period}`;
 }
 
-// The closing time to print, read the same way the alcohol gate reads its window: the
-// `barClosesAt` instant when the row carries one, the legacy `barCloseTime` wall clock otherwise.
-//
-// Both come from the SAME source the gate used to decide the bar is open, so the header can never
-// print a time the gate disagrees with -- including the "0200" form an admin could type into the
-// old unvalidated field, which this board accepts and the register does not (P1-30).
+// The closing time to print, read from the SAME field the alcohol gate used to decide the bar is
+// open: the `barClosesAt` instant, and nothing else. The header used to fall back to the legacy
+// `barCloseTime` wall clock, which is now retired -- it was the last reader of that field on this
+// board, and it is gone for the same reason the gate's own fallback is: a wall clock is what let
+// this board and the register read one stored row two different ways (P1-30).
 //
 // The instant is rendered in the DEVICE's clock, which is the venue's: this board hangs on the
-// wall at Skullspace, and `isWithinBarHours` already compares against that same local clock.
-function formatCloseTime({ barClosesAt, barCloseTime }) {
+// wall at Skullspace, and `isWithinBarHours` compares against that same local clock.
+//
+// An unreadable instant prints nothing rather than a wrong time. That is not a lost fallback: the
+// gate treats the same value as "no window" and hides alcohol, so a header that still named a
+// closing hour would be contradicting the columns underneath it.
+function formatCloseTime(barClosesAt) {
     const ms = parseInstant(barClosesAt);
-    if (ms !== null) {
-        const at = new Date(ms);
-        return formatMinutes(at.getHours() * 60 + at.getMinutes());
-    }
-    const minutes = parseTimeToMinutes(barCloseTime);
-    return minutes === null ? '' : formatMinutes(minutes);
+    if (ms === null) return '';
+    const at = new Date(ms);
+    return formatMinutes(at.getHours() * 60 + at.getMinutes());
 }
 
 // The three states the header can be in, kept apart on purpose. "Bar Closed" is a statement about
@@ -35,11 +35,10 @@ function formatCloseTime({ barClosesAt, barCloseTime }) {
 export function barStatusLabel({
     alcoholEnabled,
     activeEventUnavailable,
-    barCloseTime,
     barClosesAt
 }) {
     if (alcoholEnabled) {
-        const until = formatCloseTime({ barClosesAt, barCloseTime });
+        const until = formatCloseTime(barClosesAt);
         return until ? `Bar Open · Until ${until}` : 'Bar Open';
     }
     if (activeEventUnavailable) return 'Bar Status Unavailable · Ask Staff';
@@ -48,7 +47,6 @@ export function barStatusLabel({
 
 export default function Header({
     alcoholEnabled,
-    barCloseTime,
     barClosesAt,
     activeEventUnavailable = false
 }) {
@@ -71,7 +69,6 @@ export default function Header({
                 {barStatusLabel({
                     alcoholEnabled,
                     activeEventUnavailable,
-                    barCloseTime,
                     barClosesAt
                 })}
             </div>

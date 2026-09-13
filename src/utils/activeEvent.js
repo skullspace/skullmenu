@@ -8,11 +8,15 @@
  * columns stayed hidden at every hour. The function reads as the server and returns only the
  * door-safe projection of the event (no revenue/cogs/profit/tips columns ever leave the box).
  *
- * That projection is passed through here whole and unfiltered. During the timestamp migration it
- * carries the bar window in two shapes at once -- barOpensAt/barClosesAt (instants) and the
- * legacy barOpenTime/barCloseTime wall clocks -- and utils/barHours.js is what prefers one and
- * falls back to the other. Nothing is dropped on the way, so a row backfilled before this build
- * ships, or a function build that predates the new fields, both still reach the gate intact.
+ * That projection is passed through here whole and unfiltered, and the "unfiltered" half is the
+ * load-bearing one. The bar window now arrives in a single shape -- the barOpensAt/barClosesAt
+ * instants -- and utils/barHours.js is the only thing that reads it. The retired barOpenTime/
+ * barCloseTime wall clocks are nothing this board looks at any more, but they are not stripped
+ * here either: whatever the function projects is handed over as it arrived. Filtering to an
+ * allowlist at this layer would put a second, silent place where a field the gate needs could go
+ * missing, and a board whose instants were quietly dropped on the way in fails closed -- a dark
+ * alcohol column for a whole event, with the row itself looking perfectly correct in the admin
+ * app. Ticketing-ActiveEvent already owns the allowlist; this file must not own a second one.
  *
  * The states below are deliberately the same two the POS's own
  * POS/src/utils/api.js#parseActiveEventExecution returns, parsed by the same three checks, so the

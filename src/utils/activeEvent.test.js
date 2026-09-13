@@ -25,15 +25,15 @@ describe("fetchActiveEvent", () => {
 		);
 	});
 
-	test("returns the event's public projection, bar-hours fields included", async () => {
-		// Mid-migration shape: the instants the gate prefers AND the legacy wall clocks it falls
-		// back to, both carried through untouched. barHours.js decides between them, not this.
+	test("returns the event's public projection with its bar instants intact", async () => {
+		// The bar window is barOpensAt/barClosesAt and nothing else now. Those two fields are the
+		// only thing standing between the board and a dark alcohol column, so the assertion is
+		// deliberately on the whole object: anything this layer quietly dropped would fail here
+		// rather than at 10pm on an event night.
 		const event = {
 			$id: "evt1",
 			name: "HAX 7.0",
 			sellsAlcohol: true,
-			barOpenTime: "18:00",
-			barCloseTime: "02:00",
 			barOpensAt: "2026-09-11T23:00:00.000Z",
 			barClosesAt: "2026-09-12T07:00:00.000Z",
 		};
@@ -47,15 +47,37 @@ describe("fetchActiveEvent", () => {
 		});
 	});
 
-	test("passes through a row that has not been backfilled yet, untouched", async () => {
-		// A function build that predates the instants, or a row the backfill has not reached.
-		// Nothing here may invent or drop a field -- the gate's fallback needs the row as-is.
+	test("passes a row through whole, including fields this board no longer reads", async () => {
+		// Between this build reaching the TVs and the retired attributes being dropped from the
+		// schema, the projection may still carry barOpenTime/barCloseTime. This layer neither
+		// strips them nor cares about them: whatever the function sent is what the caller gets.
+		// The allowlist lives in Ticketing-ActiveEvent, and a second one here would just be another
+		// place an instant could go missing without anyone noticing until the bar looked shut.
 		const event = {
 			$id: "evt1",
 			name: "HAX 7.0",
 			sellsAlcohol: true,
 			barOpenTime: "18:00",
 			barCloseTime: "02:00",
+			barOpensAt: "2026-09-11T23:00:00.000Z",
+			barClosesAt: "2026-09-12T07:00:00.000Z",
+		};
+		const functions = {
+			createExecution: jest.fn().mockResolvedValue(execution({ event })),
+		};
+		const result = await fetchActiveEvent(functions);
+		expect(result.status).toBe(ACTIVE_EVENT_OK);
+		expect(result.event).toEqual(event);
+	});
+
+	test("a row with no bar instants arrives as it is, with nothing invented to cover for it", async () => {
+		// This used to be the row the gate's legacy fallback rescued. There is no fallback now: the
+		// honest thing is to hand the gate exactly what the server sent and let it fail closed,
+		// rather than to synthesize a window here out of whatever else is on the row.
+		const event = {
+			$id: "evt1",
+			name: "HAX 7.0",
+			sellsAlcohol: true,
 		};
 		const functions = {
 			createExecution: jest.fn().mockResolvedValue(execution({ event })),
@@ -64,6 +86,7 @@ describe("fetchActiveEvent", () => {
 		expect(result.status).toBe(ACTIVE_EVENT_OK);
 		expect(result.event).toEqual(event);
 		expect("barOpensAt" in result.event).toBe(false);
+		expect("barClosesAt" in result.event).toBe(false);
 	});
 
 	test("no event running is an answer, not a fault", async () => {

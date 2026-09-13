@@ -117,9 +117,13 @@ export function useAppwrite() {
     }, [databases]);
 
     // Fetches the currently active event, if any, via the Ticketing-ActiveEvent function. The
-    // event is stored whole: the alcohol gate (utils/barHours.js) reads the bar window off it,
-    // preferring the barOpensAt/barClosesAt instants and falling back to the legacy
-    // barOpenTime/barCloseTime wall clocks, so nothing may be filtered out on the way in.
+    // event is stored WHOLE, never reshaped into a narrower object: the alcohol gate
+    // (utils/barHours.js) reads the bar window off it as barOpensAt/barClosesAt, and those two
+    // instants are now the only description of the window there is. The legacy
+    // barOpenTime/barCloseTime wall clocks have no reader left on this board. Picking fields
+    // apart here would risk dropping an instant on the way in, and the gate reads a missing
+    // instant as "no bar window" and hides alcohol -- so a reshape bug would surface as a dark
+    // alcohol column on a night the bar was open, not as an error anyone would see.
     //
     // This board's anonymous session cannot read the `Events` collection directly (it is
     // restricted to the admin team, and widening it would hand a screen facing the room every

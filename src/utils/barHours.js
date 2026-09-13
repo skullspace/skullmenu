@@ -2,62 +2,61 @@
  * Determines whether alcohol should currently be shown on the menu board, based on the active
  * event's sellsAlcohol flag and its bar window.
  *
- * The window can arrive in either of two shapes, and this reads BOTH:
+ * The window is now exactly one thing: barOpensAt / barClosesAt, a pair of full instants
+ * (ISO-8601 datetimes, e.g. "2026-06-05T23:00:00.000Z"). Nothing here composes a date with a wall
+ * clock, guesses a timezone, or special-cases a close that lands after midnight -- the comparison
+ * is two numbers.
  *
- *   barOpensAt / barClosesAt -- full instants (ISO-8601 datetimes, e.g.
- *     "2026-06-05T23:00:00.000Z"). Preferred. Nothing here composes a date with a wall clock,
- *     guesses a timezone, or special-cases a close that lands after midnight: it is two numbers.
- *   barOpenTime / barCloseTime -- the legacy wall-clock strings, parsed by parseTimeToMinutes
- *     below, with a close at or before the open meaning the window runs overnight.
+ * The legacy barOpenTime / barCloseTime strings are gone, and deleting them is the point of this
+ * change rather than tidying up after it. Those two fields were the one place this board and the
+ * register read the very same stored row and got opposite answers: the parser that used to live
+ * here accepted the bare "1800" an admin could type into a field with no validation at entry,
+ * POS's accepted only "18:00", so an event saved that way advertised a drink on the TV that the
+ * till then refused to ring up -- with nothing on either screen to explain the contradiction. The
+ * fix was never a third parser the two sides could finally agree on; it is having no wall clock
+ * left to parse. Two surfaces comparing the same two numbers have nothing left to disagree about.
  *
- * The legacy strings are where this board and the register have historically disagreed: the
- * parser below accepts the bare "1800" form an admin can type into an unvalidated field, POS's
- * own parser accepts only "18:00", so an event saved that way advertised a drink here that the
- * till refused to ring up. On a row carrying instants there is no wall clock left to parse, so
- * the two surfaces cannot diverge at all -- that is the point of the new fields, not a
- * side-effect. Until every row is backfilled the divergent parsers are still both live, so the
- * colon-less form stays accepted here rather than being narrowed to match POS.
+ * This file only ever READS, so no deploy order can make it fail the way a writer would. The
+ * ordering fact that does matter here is the reverse one: a row reaching the gate without a
+ * usable instant pair now hides alcohol where it used to fall back to the wall clocks. All three
+ * live Events rows carry both instants, and Ticketing-ActiveEvent normalizes what it projects to
+ * a real instant or to null -- never an empty string, never an unparseable one -- so no live
+ * event is affected. A row that somehow arrived without them would go dark rather than guess.
  *
- * The fallback is load-bearing generally: the new attributes are added and backfilled in the
- * same pass this ships, and every component deploys independently, so a row without them (or a
- * Ticketing-ActiveEvent build that predates the new projection) must open the bar exactly as it
- * does today.
- *
- * No active event, sellsAlcohol:false, or a missing/malformed window in BOTH shapes all fail
- * closed (alcohol hidden).
+ * Every unknown fails CLOSED (alcohol hidden): no active event, sellsAlcohol:false, a missing
+ * instant, an unparseable one, or a pair that does not describe a real interval.
  */
 export function isWithinBarHours(event, now = new Date()) {
 	if (!event || !event.sellsAlcohol) return false;
 
 	const window = instantWindow(event);
-	if (window) {
-		const nowMs = toMillis(now);
-		if (nowMs === null) return false;
-		return nowMs >= window.opensAt && nowMs < window.closesAt;
-	}
+	if (!window) return false;
 
-	const openMinutes = parseTimeToMinutes(event.barOpenTime);
-	const closeMinutes = parseTimeToMinutes(event.barCloseTime);
-	if (openMinutes === null || closeMinutes === null) return false;
-
-	const nowMinutes = now.getHours() * 60 + now.getMinutes();
-
-	if (closeMinutes <= openMinutes) {
-		// Overnight window (e.g. 18:00 - 02:00): "within" means at/after open OR before close.
-		return nowMinutes >= openMinutes || nowMinutes < closeMinutes;
-	}
-	return nowMinutes >= openMinutes && nowMinutes < closeMinutes;
+	const nowMs = toMillis(now);
+	if (nowMs === null) return false;
+	return nowMs >= window.opensAt && nowMs < window.closesAt;
 }
 
 /**
- * The instant pair, or null to mean "use the legacy strings".
+ * The instant pair, or null when the row does not carry a usable one.
  *
- * Falls back rather than failing closed in the two cases where the new fields are present but
- * cannot describe a real interval -- unparseable, or closing at/before opening. A window that
- * runs backwards is evidence of a bad write upstream (an 02:00 close that did not get the
- * following day attached, say), and the legacy strings on the same row still describe the night
- * correctly. Failing closed on it instead would blank both alcohol columns on a screen facing
- * the room for a whole event, which is the outcome the fallback exists to prevent.
+ * Returning null used to mean "use the legacy strings instead", and on an inverted pair -- a close
+ * at or before the open, the shape a bad backfill makes when an 02:00 close never got the
+ * following day attached -- it deliberately chose that fallback over failing closed. The argument
+ * was that the wall clocks on the same row still described the night correctly, so believing the
+ * inverted pair would blank both alcohol columns on a screen facing the room for an entire event.
+ *
+ * That argument does not outlive the fields it rested on. With nothing left to fall back TO, an
+ * inverted pair leaves two options: hide alcohol, or repair the window by guessing which end of it
+ * is wrong. Guessing is exactly what the instants exist to stop, and the two errors are not
+ * symmetric -- a board that invents a close time can advertise a drink after the bar's permit
+ * window has shut, while a dark alcohol column is a re-save in the admin app that the 60-second
+ * poll picks up on its own. So an inverted pair now joins every other unknown and fails closed.
+ *
+ * The check stays explicit even though the range comparison above is already vacuously false for
+ * a backwards window. It is the one place a reader asks what such a window does, and it stops a
+ * future overnight-wrap rule -- an instinct carried straight over from the wall clocks, where a
+ * close before the open genuinely did mean "tomorrow" -- from quietly reading one as an open bar.
  */
 function instantWindow(event) {
 	const opensAt = parseInstant(event.barOpensAt);
@@ -71,10 +70,12 @@ function instantWindow(event) {
  * An ISO-8601 datetime: a date AND a time, offset optional (Appwrite always sends one; a bare
  * local datetime is read in the device's own zone, which is the venue's).
  *
- * Deliberately strict, and specifically stricter than Date.parse, which is the trap here:
- * `new Date("1800")` is not an invalid date, it is the YEAR 1800 -- and "1800" is exactly the
- * wall-clock form this board already accepts below. A value with no date part is never an
- * instant, so the two shapes can never be confused for one another.
+ * Deliberately stricter than Date.parse. The trap it was written against is gone from the data but
+ * not from the world: `new Date("1800")` is not an invalid date, it is the YEAR 1800, and "1800"
+ * is precisely the wall-clock form the retired fields used to hold. A stale payload, a hand-built
+ * fixture or a hand-edited row can still put one in front of this, and reading it as a bar that
+ * closed two centuries ago would render "Until 12:00 AM" and hide alcohol all night. A value with
+ * no date part is not an instant, so it is rejected outright rather than coerced into one.
  */
 const ISO_DATETIME = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2})?(\.\d+)?(Z|[+-]\d{2}:?\d{2})?$/i;
 
@@ -93,28 +94,6 @@ function toMillis(now) {
 }
 
 /**
- * Accepts both the canonical "HH:mm" the admin app's field label asks for AND the bare
- * "HHmm"/"Hmm" digits an admin can just as easily type into it -- that field has no validation
- * at entry, and Verify-Pin's own parser has always accepted both forms. When the two parsers
- * disagreed, an event saved as "1800"/"0200" kept bartender PINs working all night while this
- * board (and the register) silently hid every alcohol item for the whole event, with nothing on
- * screen to say why. Same stored value, same reading, on every surface.
- *
- * Only reached for a row with no usable barOpensAt/barClosesAt pair; on a backfilled row there
- * is no string to parse and this cannot disagree with anything.
- */
-export function parseTimeToMinutes(value) {
-	if (value === null || value === undefined) return null;
-	const cleaned = String(value).trim().replace(":", "");
-	if (!/^\d{3,4}$/.test(cleaned)) return null;
-	const padded = cleaned.padStart(4, "0");
-	const hours = parseInt(padded.slice(0, 2), 10);
-	const minutes = parseInt(padded.slice(2), 10);
-	if (hours > 23 || minutes > 59) return null;
-	return hours * 60 + minutes;
-}
-
-/**
  * The admin app's alcohol kill switch (`barData/config` row `alcohol_override_disabled`) -- the
  * documented emergency stop for "the permit window closed" or "an inspector is on site".
  *
@@ -123,7 +102,7 @@ export function parseTimeToMinutes(value) {
  * dangerous one: `settings` is null until the config fetch resolves and stays null when it
  * fails, and reading that as "switch off" would keep a till or a board selling alcohol while
  * the admin app shows the switch as engaged. Unknown therefore fails CLOSED, the same way a
- * missing active event and a malformed bar-hours window already do.
+ * missing active event and an unusable bar window already do.
  */
 export function isAlcoholOverrideDisabled(settings) {
 	if (settings === null || settings === undefined) return true;

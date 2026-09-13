@@ -9,14 +9,26 @@ const at = (hours, minutes) => new Date(2026, 0, 1, hours, minutes);
 /** Jan 2 -- the far side of midnight, for an overnight window's close. */
 const nextDayAt = (hours, minutes) => new Date(2026, 0, 2, hours, minutes);
 
+/**
+ * Every instant below is built from a LOCAL Date and then serialized, so the fixtures describe the
+ * same wall clock whichever zone the test machine runs in.
+ */
+const iso = (date) => date.toISOString();
+
+/** 18:00 -> 02:00 the next day: the venue's ordinary night, as two instants. */
+const instantsOnly = {
+	sellsAlcohol: true,
+	barOpensAt: iso(at(18, 0)),
+	barClosesAt: iso(nextDayAt(2, 0)),
+};
+
 describe("isWithinBarHours", () => {
 	test("no event returns false", () => {
 		expect(isWithinBarHours(null, at(20, 0))).toBe(false);
 	});
 
 	test("sellsAlcohol:false returns false regardless of time", () => {
-		const event = { sellsAlcohol: false, barOpenTime: "18:00", barCloseTime: "23:00" };
-		expect(isWithinBarHours(event, at(20, 0))).toBe(false);
+		expect(isWithinBarHours({ ...instantsOnly, sellsAlcohol: false }, at(20, 0))).toBe(false);
 	});
 
 	test("missing bar hours fails closed", () => {
@@ -25,75 +37,25 @@ describe("isWithinBarHours", () => {
 	});
 
 	test("within a same-day window returns true", () => {
-		const event = { sellsAlcohol: true, barOpenTime: "18:00", barCloseTime: "23:00" };
+		const event = {
+			sellsAlcohol: true,
+			barOpensAt: iso(at(18, 0)),
+			barClosesAt: iso(at(23, 0)),
+		};
 		expect(isWithinBarHours(event, at(20, 0))).toBe(true);
 	});
 
 	test("an overnight window is within after midnight, before close", () => {
-		const event = { sellsAlcohol: true, barOpenTime: "18:00", barCloseTime: "02:00" };
-		expect(isWithinBarHours(event, at(1, 30))).toBe(true);
+		expect(isWithinBarHours(instantsOnly, at(1, 30))).toBe(false);
+		expect(isWithinBarHours(instantsOnly, nextDayAt(1, 30))).toBe(true);
 	});
 
 	test("an overnight window is not within mid-afternoon", () => {
-		const event = { sellsAlcohol: true, barOpenTime: "18:00", barCloseTime: "02:00" };
-		expect(isWithinBarHours(event, at(14, 0))).toBe(false);
+		expect(isWithinBarHours(instantsOnly, at(14, 0))).toBe(false);
 	});
 });
 
-// An admin typing "1800"/"0200" into a field labelled "Bar open (HH:mm)" used to be accepted by
-// Verify-Pin (pins worked all night) but rejected here, hiding alcohol for the whole event.
-describe("isWithinBarHours accepts the colon-less form Verify-Pin already accepts", () => {
-	test("a colon-less HHmm window behaves like its HH:mm equivalent", () => {
-		const event = { sellsAlcohol: true, barOpenTime: "1800", barCloseTime: "0200" };
-		expect(isWithinBarHours(event, at(20, 0))).toBe(true);
-		expect(isWithinBarHours(event, at(1, 30))).toBe(true);
-		expect(isWithinBarHours(event, at(14, 0))).toBe(false);
-	});
-
-	test("a 3-digit Hmm morning time is read as zero-padded, not as HHm", () => {
-		const event = { sellsAlcohol: true, barOpenTime: "930", barCloseTime: "1700" };
-		expect(isWithinBarHours(event, at(9, 45))).toBe(true);
-		expect(isWithinBarHours(event, at(9, 15))).toBe(false);
-	});
-
-	test("the two colon forms still parse identically", () => {
-		const padded = { sellsAlcohol: true, barOpenTime: "09:30", barCloseTime: "17:00" };
-		const bare = { sellsAlcohol: true, barOpenTime: "9:30", barCloseTime: "17:00" };
-		expect(isWithinBarHours(padded, at(9, 45))).toBe(true);
-		expect(isWithinBarHours(bare, at(9, 45))).toBe(true);
-	});
-
-	test("genuinely unparseable and out-of-range values still fail closed", () => {
-		const cases = ["", "  ", "later", "18:0:0", "180000", "24:00", "18:75", "2575"];
-		cases.forEach((value) => {
-			const event = { sellsAlcohol: true, barOpenTime: value, barCloseTime: "02:00" };
-			expect(isWithinBarHours(event, at(20, 0))).toBe(false);
-		});
-	});
-});
-
-/**
- * The instant window (barOpensAt/barClosesAt). Every instant below is built from a LOCAL Date
- * and then serialized, so the fixtures describe the same wall clock the legacy strings do no
- * matter which zone the test machine runs in -- which is what lets the three row shapes be
- * compared against one another at all.
- */
-const iso = (date) => date.toISOString();
-
-/** 18:00 -> 02:00 next day, in all three shapes. Same night, three ways of saying it. */
-const legacyOnly = {
-	sellsAlcohol: true,
-	barOpenTime: "18:00",
-	barCloseTime: "02:00",
-};
-const instantsOnly = {
-	sellsAlcohol: true,
-	barOpensAt: iso(at(18, 0)),
-	barClosesAt: iso(nextDayAt(2, 0)),
-};
-const bothShapes = { ...legacyOnly, ...instantsOnly };
-
-describe("isWithinBarHours reads the new instant window", () => {
+describe("isWithinBarHours reads the instant window", () => {
 	test.each([
 		["mid-afternoon, before open", at(14, 0), false],
 		["the exact minute the bar opens", at(18, 0), true],
@@ -101,27 +63,13 @@ describe("isWithinBarHours reads the new instant window", () => {
 		["after midnight, before close", nextDayAt(1, 30), true],
 		["the exact minute the bar closes", nextDayAt(2, 0), false],
 		["the morning after", nextDayAt(9, 0), false],
-	])("%s: a backfilled row agrees with an un-backfilled one", (_label, now, expected) => {
-		// The migration's core promise: whichever shape a row happens to be in right now, the
-		// board gets the same window. A half-backfilled collection is a supported state.
-		expect(isWithinBarHours(legacyOnly, now)).toBe(expected);
+	])("%s", (_label, now, expected) => {
 		expect(isWithinBarHours(instantsOnly, now)).toBe(expected);
-		expect(isWithinBarHours(bothShapes, now)).toBe(expected);
-	});
-
-	test("the instants win when the two shapes disagree", () => {
-		const conflicting = {
-			sellsAlcohol: true,
-			barOpenTime: "09:00",
-			barCloseTime: "10:00",
-			barOpensAt: iso(at(18, 0)),
-			barClosesAt: iso(nextDayAt(2, 0)),
-		};
-		expect(isWithinBarHours(conflicting, at(22, 0))).toBe(true);
-		expect(isWithinBarHours(conflicting, at(9, 30))).toBe(false);
 	});
 
 	test("an overnight instant window needs no midnight wrap-around rule", () => {
+		// Two numbers and a range test. The wall clocks needed a special case here ("a close at or
+		// before the open means tomorrow"); instants carry the date, so there is nothing to encode.
 		expect(isWithinBarHours(instantsOnly, nextDayAt(0, 0))).toBe(true);
 		expect(isWithinBarHours(instantsOnly, nextDayAt(1, 59))).toBe(true);
 	});
@@ -141,7 +89,7 @@ describe("isWithinBarHours reads the new instant window", () => {
 		expect(isWithinBarHours({ ...instantsOnly, sellsAlcohol: false }, at(22, 0))).toBe(false);
 	});
 
-	test("an event carrying neither shape still fails closed", () => {
+	test("an event carrying no window at all fails closed", () => {
 		expect(isWithinBarHours({ sellsAlcohol: true }, at(22, 0))).toBe(false);
 	});
 
@@ -152,47 +100,95 @@ describe("isWithinBarHours reads the new instant window", () => {
 	});
 });
 
-describe("isWithinBarHours falls back when the instants are unusable", () => {
-	test("garbage instants fall back to the legacy window rather than blanking the bar", () => {
-		const event = { ...legacyOnly, barOpensAt: "not-a-date", barClosesAt: "" };
-		expect(isWithinBarHours(event, at(22, 0))).toBe(true);
-		expect(isWithinBarHours(event, at(14, 0))).toBe(false);
+/**
+ * The retired wall clocks are no longer read, in any form.
+ *
+ * This board's parser used to accept the bare "1800" that POS's rejected, so one stored row opened
+ * the bar here and not at the till. The divergence is not resolved by agreeing on a parser -- it is
+ * resolved by there being no parser. These tests pin the deletion: a row offering only the retired
+ * strings has no window at all, and one that still carries them alongside the instants is read
+ * exactly as if it did not.
+ */
+describe("the retired wall clocks have no reader left", () => {
+	test.each([
+		["colon-less, the form that used to split the board from the register", "1800", "0200"],
+		["the canonical form the admin field asked for", "18:00", "02:00"],
+		["the 3-digit morning form", "930", "1700"],
+	])("a row carrying only %s fails closed", (_label, barOpenTime, barCloseTime) => {
+		const legacyOnly = { sellsAlcohol: true, barOpenTime, barCloseTime };
+		expect(isWithinBarHours(legacyOnly, at(20, 0))).toBe(false);
+		expect(isWithinBarHours(legacyOnly, at(9, 45))).toBe(false);
+		expect(isWithinBarHours(legacyOnly, nextDayAt(1, 30))).toBe(false);
 	});
 
-	test("only one of the two instants present falls back to the legacy window", () => {
-		const event = { ...legacyOnly, barOpensAt: iso(at(18, 0)) };
-		expect(isWithinBarHours(event, at(22, 0))).toBe(true);
+	test("leftover legacy keys are ignored, not consulted, when instants are present", () => {
+		// The state the collection is in between this build reaching the TVs and the attributes
+		// being dropped from the schema: the strings are still on the row, and still wrong. The
+		// window must come from the instants alone.
+		const withLeftovers = {
+			...instantsOnly,
+			barOpenTime: "09:00",
+			barCloseTime: "10:00",
+		};
+		expect(isWithinBarHours(withLeftovers, at(22, 0))).toBe(true);
+		expect(isWithinBarHours(withLeftovers, at(9, 30))).toBe(false);
+	});
+});
+
+describe("isWithinBarHours fails closed when the instants are unusable", () => {
+	test("unparseable instants fail closed", () => {
+		expect(isWithinBarHours({ sellsAlcohol: true, barOpensAt: "nope", barClosesAt: "nope" }, at(22, 0))).toBe(false);
+		expect(isWithinBarHours({ sellsAlcohol: true, barOpensAt: "not-a-date", barClosesAt: "" }, at(22, 0))).toBe(false);
 	});
 
-	test("an instant window that runs backwards falls back instead of failing closed", () => {
-		// The shape a bad backfill makes: an 02:00 close that never got the following day
-		// attached. The legacy strings on the same row still describe the night correctly, and
-		// believing the inverted pair would blank both alcohol columns for the entire event.
-		const event = { ...legacyOnly, barOpensAt: iso(at(18, 0)), barClosesAt: iso(at(2, 0)) };
-		expect(isWithinBarHours(event, at(22, 0))).toBe(true);
-		expect(isWithinBarHours(event, nextDayAt(1, 30))).toBe(true);
-		expect(isWithinBarHours(event, at(14, 0))).toBe(false);
+	test("only one of the two instants present fails closed", () => {
+		expect(isWithinBarHours({ sellsAlcohol: true, barOpensAt: iso(at(18, 0)) }, at(22, 0))).toBe(false);
+		expect(isWithinBarHours({ sellsAlcohol: true, barClosesAt: iso(nextDayAt(2, 0)) }, at(22, 0))).toBe(false);
 	});
 
-	test("unusable instants with no legacy window left still fail closed", () => {
-		const event = { sellsAlcohol: true, barOpensAt: "nope", barClosesAt: "nope" };
+	test("an unparseable instant is not rescued by leftover legacy strings on the same row", () => {
+		// This is the assertion that changed direction with the migration, and it changed on
+		// purpose. A row like this used to read its window off barOpenTime/barCloseTime and open
+		// the bar; there is nothing to fall back to now, so it fails closed like every other
+		// unknown. No live row is in this shape -- Ticketing-ActiveEvent normalizes each instant to
+		// a real value or to null before it ever leaves the server.
+		const event = {
+			sellsAlcohol: true,
+			barOpenTime: "18:00",
+			barCloseTime: "02:00",
+			barOpensAt: "not-a-date",
+			barClosesAt: "",
+		};
 		expect(isWithinBarHours(event, at(22, 0))).toBe(false);
 	});
 
-	test("a colon-less legacy row is still read here when it has no instants (unchanged)", () => {
-		// The divergence is routed around, not converged: this parser keeps accepting "1800"
-		// so an un-backfilled row behaves exactly as it does in production today.
-		const legacy = { sellsAlcohol: true, barOpenTime: "1800", barCloseTime: "0200" };
-		expect(isWithinBarHours(legacy, at(20, 0))).toBe(true);
+	test("an instant window that runs backwards fails closed", () => {
+		// The shape a bad backfill makes: an 02:00 close that never got the following day attached.
+		// This used to fall back to the wall clocks rather than blank the columns for a whole
+		// event. With nothing left to fall back to, the choice is between hiding alcohol and
+		// guessing which end of the window is wrong -- and a board that guesses can advertise a
+		// drink after the permit window has shut. It hides.
+		const backwards = {
+			sellsAlcohol: true,
+			barOpensAt: iso(at(18, 0)),
+			barClosesAt: iso(at(2, 0)),
+		};
+		expect(isWithinBarHours(backwards, at(22, 0))).toBe(false);
+		expect(isWithinBarHours(backwards, nextDayAt(1, 30))).toBe(false);
+		expect(isWithinBarHours(backwards, at(14, 0))).toBe(false);
+	});
+
+	test("a zero-length window is never open, including at its own instant", () => {
+		const zero = { sellsAlcohol: true, barOpensAt: iso(at(18, 0)), barClosesAt: iso(at(18, 0)) };
+		expect(isWithinBarHours(zero, at(18, 0))).toBe(false);
 	});
 });
 
 /**
- * The board/register divergence the instants exist to delete. This fixture is byte-identical to
- * the one in POS/src/utils/barHours.test.js, and both sides assert the same answers: "1800"/
- * "0200" parses here and not in POS, so before the instants this exact row showed alcohol on
- * this board while the register hid it. With the instants present neither surface has a wall
- * clock left to parse, so neither can be the odd one out.
+ * The board/register divergence the instants exist to delete, pinned on the exact row that caused
+ * it. This fixture still carries the retired "1800"/"0200" strings on purpose: it is the row that
+ * used to show alcohol here and hide it at the till, and with the wall clocks unread by either
+ * surface the two now answer from the same two numbers.
  */
 describe("the colon-less legacy row that used to split the board from the register", () => {
 	const colonless = {
@@ -203,7 +199,7 @@ describe("the colon-less legacy row that used to split the board from the regist
 		barClosesAt: "2026-01-02T10:00:00.000Z",
 	};
 
-	test("with instants present the board shows alcohol inside the window", () => {
+	test("the board shows alcohol inside the window", () => {
 		expect(isWithinBarHours(colonless, new Date("2026-01-02T02:00:00.000Z"))).toBe(true);
 		expect(isWithinBarHours(colonless, new Date("2026-01-02T04:00:00.000Z"))).toBe(true);
 		expect(isWithinBarHours(colonless, new Date("2026-01-02T09:59:00.000Z"))).toBe(true);
@@ -225,8 +221,9 @@ describe("parseInstant", () => {
 	});
 
 	test("rejects a bare wall clock instead of reading it as the year 1800", () => {
-		// `new Date("1800")` is not an invalid date -- it is January 1st, 1800. "1800" is also a
-		// wall clock this board genuinely accepts, so the two shapes must never be confused.
+		// `new Date("1800")` is not an invalid date -- it is January 1st, 1800. The retired fields
+		// held exactly this form, and a stale payload or a hand-edited row can still present one,
+		// so the strictness outlives the fields it was written against.
 		expect(parseInstant("1800")).toBeNull();
 		expect(parseInstant("18:00")).toBeNull();
 		expect(parseInstant("0200")).toBeNull();
@@ -262,28 +259,24 @@ describe("isAlcoholOverrideDisabled", () => {
 });
 
 describe("isAlcoholVisible", () => {
-	const openEvent = { sellsAlcohol: true, barOpenTime: "18:00", barCloseTime: "02:00" };
-
 	test("shows alcohol inside bar hours with the switch off", () => {
-		expect(isAlcoholVisible(openEvent, {}, at(20, 0))).toBe(true);
+		expect(isAlcoholVisible(instantsOnly, {}, at(20, 0))).toBe(true);
 	});
 
 	test("the kill switch wins over an open bar window", () => {
 		const settings = { alcohol_override_disabled: "true" };
-		expect(isAlcoholVisible(openEvent, settings, at(20, 0))).toBe(false);
+		expect(isAlcoholVisible(instantsOnly, settings, at(20, 0))).toBe(false);
 	});
 
 	test("an unreachable config hides alcohol even inside bar hours", () => {
-		expect(isAlcoholVisible(openEvent, null, at(20, 0))).toBe(false);
+		expect(isAlcoholVisible(instantsOnly, null, at(20, 0))).toBe(false);
 	});
 
 	test("an unreadable active event hides alcohol even with the switch off", () => {
 		expect(isAlcoholVisible(null, {}, at(20, 0))).toBe(false);
 	});
 
-	test("the kill switch wins over an open INSTANT window too", () => {
-		// The switch is the emergency stop; it sits in front of the window regardless of which
-		// shape the window arrived in.
+	test("the switch sits in front of the window, not beside it", () => {
 		expect(isAlcoholVisible(instantsOnly, { alcohol_override_disabled: "true" }, at(22, 0))).toBe(false);
 		expect(isAlcoholVisible(instantsOnly, null, at(22, 0))).toBe(false);
 		expect(isAlcoholVisible(instantsOnly, {}, at(22, 0))).toBe(true);

@@ -105,41 +105,48 @@ Three checks, in this order. **Every one of them fails closed: anything unknown 
 2. **Active event.** Fetched through the `ticketing-active-event` function (below). No active event
    → no alcohol.
 3. **Bar hours.** The event's `sellsAlcohol` must be true, and the current time must fall inside
-   `barOpenTime`–`barCloseTime`. A close time earlier than the open time is treated as an overnight
-   window (`18:00`–`02:00` works). **On this board** both `"HH:mm"` and bare `"1800"`/`"200"`
-   parse — the admin field has no validation at entry, and Verify-Pin's parser
-   (`Verify-Pin/src/eventWindow.js`) accepts both forms too. The staff POS does **not**; see
-   "Where the board and the register differ" below before assuming a stored value reads the same
-   way everywhere.
+   `barOpensAt`–`barClosesAt`, a pair of full ISO-8601 instants. There is no wall clock to parse
+   and no timezone to guess — the gate compares two numbers — and a window that crosses midnight
+   needs no special case, because each instant carries its own date. A missing instant, an
+   unparseable one, or a pair that closes at or before it opens all fail closed.
+
+   The retired `barOpenTime`/`barCloseTime` strings have **no reader left on this board**. While
+   they are still present on a row they are ignored, never consulted as a fallback. See
+   "The divergence that used to live here" below.
 
 The gate is re-evaluated once a minute, so the window opens and closes on its own mid-shift without
 a reload.
 
 The board and the staff POS read the **same data** — the same `barData/config` row and the same
-active event — but they are **not** running the same gate. See below before concluding that a
-disagreement between the TV and the till means one of them is on stale code.
+active event. On **bar hours** they now also run the same comparison against the same two instants,
+so the TV and the till can no longer disagree about the window. On the **kill switch** they still
+differ on which stored values count as engaged; see below before concluding that a disagreement
+means one of them is on stale code.
 
 **The gate keys on the category's `alcohol` boolean, not on the item's `contains_alcohol`.** The
 board never reads `contains_alcohol`. An alcoholic item filed under a non-alcohol category will sit
 on the board at every hour of the day.
 
-### Where the board and the register differ
+### The divergence that used to live here
 
-The two `isWithinBarHours` bodies — `skullmenu/src/utils/barHours.js` and
-`POS/src/utils/barHours.js` — are still identical line for line. Everything around that one
-function has diverged, in two independent ways, and both surfaces are on current code. A board and
-a register that disagree about whether the bar is open are far more likely to be hitting one of
-these than a bad deploy.
+For most of this project's life the board and the register could read the **same stored row** and
+reach opposite conclusions about whether the bar was open. It is worth knowing what that was,
+because it is the reason the bar window is a pair of instants today.
 
-- **Colon-less bar times.** This board's `parseTimeToMinutes` strips the colon and accepts 3–4
-  digits, so `"1800"` and `"200"` parse. The POS's copy is module-private and still strict —
-  `value.match(/^(\d{1,2}):(\d{2})$/)`, and anything else returns `null`, which
-  `isWithinBarHours` fails closed on. So an event saved with `barOpenTime` `"1800"` opens the bar
-  on this board, and keeps bartender PINs working (Verify-Pin is lenient too), while the register
-  silently hides every alcohol item for the whole event. All three event rows in the project
-  currently store `"HH:mm"` (`18:00`/`22:00` open, `02:00` close), so this is latent, not live —
-  typing a bar time without the colon is what arms it. Until the POS parser is relaxed, enter bar
-  times with the colon.
+The admin app's bar-time field had no validation at entry, so an admin could type `"1800"` where
+the label asked for `"18:00"`. This board's `parseTimeToMinutes` stripped the colon and accepted
+3–4 digits, so `"1800"` parsed; the POS's copy was strict (`/^(\d{1,2}):(\d{2})$/`) and returned
+`null`, which its gate failed closed on. One event, saved once, advertised a drink on the TV that
+the till then refused to ring up — and bartender PINs kept working throughout, because Verify-Pin's
+parser was lenient too, so nothing on any screen indicated a contradiction.
+
+**That class of bug is now closed by construction, not by agreement.** The fix was never a third
+parser the two sides could finally share: it is that neither surface has a wall clock left to
+parse. `parseTimeToMinutes` is gone from this repo, `barOpenTime`/`barCloseTime` have no reader
+here, and both gates compare the same two instants. Two numbers cannot be read two ways.
+
+One real divergence remains, and it is unrelated to bar hours:
+
 - **The kill switch.** This board's `isAlcoholOverrideDisabled` engages only on the exact string
   `"true"`. The POS's `readAlcoholOverride` — which lives in `POS/src/components/pos/pos.js`, not
   in its `barHours.js` — inverts the test: any value that is present and *not* in
@@ -155,7 +162,7 @@ these than a bad deploy.
 
 | On screen | Means |
 | --- | --- |
-| `Bar Open · Until 2:00 AM` | gate open; the time is the event's `barCloseTime` |
+| `Bar Open · Until 2:00 AM` | gate open; the time is the event's `barClosesAt` instant, rendered in the TV's own clock (which at the venue is the venue's). An unreadable or absent instant prints just `Bar Open` rather than a guessed time |
 | `Bar Closed` | we asked, and alcohol is genuinely not being served right now |
 | `Bar Status Unavailable · Ask Staff` + red banner | **we could not ask.** Alcohol is hidden anyway |
 
@@ -170,7 +177,13 @@ information.
 - Source: `AppwriteFunctions/functions/Ticketing-ActiveEvent/`. That repo is the only source of
   Appwrite Functions — the fork that used to live under ShottyTicketing is gone.
 - It returns `{ "event": {...} }` or `{ "event": null }`; among the door-facing fields it projects
-  `sellsAlcohol`, `barOpenTime` and `barCloseTime`, which is the whole reason this board calls it.
+  `sellsAlcohol`, `barOpensAt` and `barClosesAt`, which is the whole reason this board calls it. It
+  normalizes each instant to a real value or to `null` — never an empty string, never something
+  unparseable — so the gate's "unknown" case is genuinely unknown rather than malformed.
+- The response is stored **whole**. Neither `utils/activeEvent.js` nor `API/api.js` picks fields out
+  of it; the allowlist lives in the function, and a second one on this side would just be another
+  place an instant could go missing. A dropped instant does not raise an error — it reads as "no bar
+  window" and hides alcohol on a night the bar was open.
 
 It exists because the board's anonymous session cannot read the `Events` collection
 (`68e400210008d19bb5c9`) at all — that collection is admin-team-only, and widening it is not an
@@ -190,7 +203,7 @@ active event. Editing them does nothing; bar hours are set per-event in the admi
 
 | Symptom | Check |
 | --- | --- |
-| Alcohol columns missing, bar should be open | In this order: `alcohol_override_disabled` is not `"true"`; an event has `isActive` true; that event has `sellsAlcohol` true; its `barOpenTime`/`barCloseTime` bracket right now. |
+| Alcohol columns missing, bar should be open | In this order: `alcohol_override_disabled` is not `"true"`; an event has `isActive` true; that event has `sellsAlcohol` true; its `barOpensAt`/`barClosesAt` bracket right now **and** `barClosesAt` is genuinely after `barOpensAt`. A backwards pair (a 2am close that never got the next day attached) fails closed — re-save the event in the admin app and the board picks it up within 60s. Setting `barOpenTime`/`barCloseTime` does nothing; they are not read. |
 | `Bar Status Unavailable · Ask Staff` | The function call failed. `appwrite functions get --function-id ticketing-active-event` — is it enabled, is the latest deployment `ready`, is execute still `users`? Then: is anonymous auth still on for the project? The board's browser console logs the underlying error. |
 | One item missing | `enabled_menu` **and** `enabled_pos` both true; the item is assigned to a category; its name does not end in `DBL`. |
 | Board's double price ≠ what the till charges | The board quotes the `<name> DBL` row's `sale_price`. Fix that row, not `dbl_price`. |
