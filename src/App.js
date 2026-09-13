@@ -100,6 +100,7 @@ export default function App() {
             <Header
                 alcoholEnabled={alcoholEnabled}
                 barCloseTime={activeEvent?.barCloseTime}
+                barClosesAt={activeEvent?.barClosesAt}
                 activeEventUnavailable={activeEventUnavailable}
             />
             {activeEventUnavailable && (
