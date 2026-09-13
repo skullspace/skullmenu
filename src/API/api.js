@@ -72,12 +72,17 @@ export function useAppwrite() {
 
     // Normalize a pos_items document to the field names this app already
     // expects (carried over from the old Items_old schema).
+    //
+    // `price` is `sale_price` and nothing else. `self_pricing` used to be aliased here as
+    // `selfcheck_price` and posted by BarItem in place of the real price whenever alcohol was
+    // off (P2-30) -- but no POS code and no function reads that attribute, so the board was the
+    // only consumer of a field an operator would reasonably think was kiosk-only. The alias is
+    // gone so it cannot quietly come back as a display price.
     function normalizePosItem(doc) {
         return {
             ...doc,
             price: doc.sale_price,
-            menu_name: doc.name_menu,
-            selfcheck_price: doc.self_pricing
+            menu_name: doc.name_menu
         };
     }
 

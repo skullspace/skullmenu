@@ -3,6 +3,7 @@ import './theme.css';
 import { useAppwrite, ACTIVE_EVENT_UNAVAILABLE } from './API/api';
 import { isAlcoholVisible } from './utils/barHours';
 import { buildDoublePriceIndex, resolveDoublePrice } from './utils/doublePrice';
+import { categoryColumnTitle } from './utils/categoryLayout';
 
 import BarItem from './components/BarItem';
 import CategoryIcon from './components/CategoryIcon';
@@ -114,17 +115,17 @@ export default function App() {
                             <div className="bar-col-icon">
                                 <CategoryIcon name={section.name} />
                             </div>
+                            {/* "Beverages" while the bar is shut, otherwise the category
+                                name with its emoji prefix dropped -- CategoryIcon already
+                                draws a matching vector icon beside it. Both decisions are
+                                made on a normalised name in utils/categoryLayout (P2-31),
+                                so a rename in the admin app cannot silently change the
+                                heading rule. */}
                             <h2 className="bar-col-title">
-                                {section.name === '🚫 Non-Alcoholic' &&
-                                !alcoholEnabled
-                                    ? 'Beverages'
-                                    : // the emoji prefix on category names is
-                                      // redundant now that CategoryIcon draws
-                                      // a matching vector icon beside it
-                                      section.name.replace(
-                                          /^\p{Extended_Pictographic}\s*/u,
-                                          ''
-                                      )}
+                                {categoryColumnTitle(
+                                    section.name,
+                                    alcoholEnabled
+                                )}
                             </h2>
                         </div>
                         <div className={rowsClassName}>
@@ -137,7 +138,6 @@ export default function App() {
                                         doublePriceIndex
                                     )}
                                     category={section.name}
-                                    alcoholEnabled={alcoholEnabled}
                                 />
                             ))}
                         </div>

@@ -1,4 +1,8 @@
 import CategoryIcon from './CategoryIcon';
+import {
+    isFoodCategory,
+    isMixedDrinksCategory
+} from '../utils/categoryLayout';
 
 const CAD = new Intl.NumberFormat('en-ca', {
     style: 'currency',
@@ -22,13 +26,13 @@ export default function BarItem({
     size,
     price,
     canadian,
-    selfcheck_price,
     category,
-    dbl_price,
-    alcoholEnabled
+    dbl_price
 }) {
-    const mixed = category === '🥃 Mixed Drinks/Shots';
-    const food = category === 'Food';
+    // P2-31: matched on the normalised category name, not on the exact emoji-prefixed string --
+    // renaming the category in the admin app must not silently switch the double price off.
+    const mixed = isMixedDrinksCategory(category);
+    const food = isFoodCategory(category);
     const showPriceStack = mixed || (food && dbl_price);
 
     return (
@@ -70,11 +74,14 @@ export default function BarItem({
                     )}
                 </div>
             ) : (
-                <div className="bar-row-price">
-                    {CAD.format(
-                        (alcoholEnabled ? price : selfcheck_price || price) / 100
-                    )}
-                </div>
+                // P2-30: `price` is `sale_price`, the only number the register ever charges.
+                // This used to post `selfcheck_price` (pos_items.self_pricing) whenever alcohol
+                // was off -- a field nothing in the POS or any function reads, whose only writer
+                // is the admin app's item form. An operator setting a "kiosk price" there had no
+                // reason to expect a customer-facing effect, but the board would advertise it
+                // while the till rang sale_price. If a separate kiosk price is ever wanted it
+                // belongs on its own labelled line, not silently in place of the real one.
+                <div className="bar-row-price">{CAD.format(price / 100)}</div>
             )}
         </div>
     );
