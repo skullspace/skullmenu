@@ -59,11 +59,11 @@ export function useAppwrite() {
     const refreshCategories = useCallback(async () => {
         console.log('refreshing categories');
         try {
-            const data = await databases.listDocuments(
-                config.databases.products.id,
-                config.databases.products.collections.categories,
-                [Query.limit(100)]
-            );
+            const data = await databases.listDocuments({
+                databaseId: config.databases.products.id,
+                collectionId: config.databases.products.collections.categories,
+                queries: [Query.limit(100)]
+            });
             setCategories(data.documents || []);
         } catch (err) {
             console.error('error getting categories', err);
@@ -89,9 +89,11 @@ export function useAppwrite() {
     const refreshItems = useCallback(async () => {
         console.log('refreshing items');
         try {
-            const data = await databases.listDocuments(
-                config.databases.products.id,
-                config.databases.products.collections.items, [Query.limit(5000)]);
+            const data = await databases.listDocuments({
+                databaseId: config.databases.products.id,
+                collectionId: config.databases.products.collections.items,
+                queries: [Query.limit(5000)]
+            });
             setItems((data.documents || []).map(normalizePosItem));
         } catch (err) {
             console.error('error getting items', err);
@@ -101,10 +103,10 @@ export function useAppwrite() {
     const refreshData = useCallback(async () => {
         console.log('refreshing data');
         try {
-            const data = await databases.listDocuments(
-                config.databases.data.id,
-                config.databases.data.collections.config
-            );
+            const data = await databases.listDocuments({
+                databaseId: config.databases.data.id,
+                collectionId: config.databases.data.collections.config
+            });
             let d = data.documents || [];
             let c = {};
             d.forEach((i) => {

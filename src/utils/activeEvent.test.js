@@ -20,10 +20,12 @@ describe("fetchActiveEvent", () => {
 			createExecution: jest.fn().mockResolvedValue(execution({ event: null })),
 		};
 		await fetchActiveEvent(functions);
-		expect(functions.createExecution).toHaveBeenCalledWith(
-			TICKETING_ACTIVE_EVENT_FUNCTION_ID,
-			JSON.stringify({})
-		);
+		// Object params, not positional: the board moved from appwrite SDK 17 to 21 because the
+		// old SDK's response-format header made the server 401 every read("any") collection.
+		expect(functions.createExecution).toHaveBeenCalledWith({
+			functionId: TICKETING_ACTIVE_EVENT_FUNCTION_ID,
+			body: JSON.stringify({}),
+		});
 	});
 
 	test("returns the event's public projection with its bar instants intact", async () => {

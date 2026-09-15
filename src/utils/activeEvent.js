@@ -105,10 +105,10 @@ export function parseActiveEventExecution(execution) {
 export async function fetchActiveEvent(functions) {
 	let execution;
 	try {
-		execution = await functions.createExecution(
-			TICKETING_ACTIVE_EVENT_FUNCTION_ID,
-			JSON.stringify({})
-		);
+		execution = await functions.createExecution({
+			functionId: TICKETING_ACTIVE_EVENT_FUNCTION_ID,
+			body: JSON.stringify({}),
+		});
 	} catch (err) {
 		return unavailable((err && err.message) || "the request failed");
 	}
