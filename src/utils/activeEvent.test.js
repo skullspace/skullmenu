@@ -4,6 +4,7 @@ import {
 	ACTIVE_EVENT_OK,
 	ACTIVE_EVENT_UNAVAILABLE,
 	TICKETING_ACTIVE_EVENT_FUNCTION_ID,
+	fetchActiveEventWithSessionRecovery,
 } from "./activeEvent";
 
 /** A synchronous execution that actually ran and answered. */
@@ -201,5 +202,92 @@ describe("parseActiveEventExecution", () => {
 			responseBody: JSON.stringify({ event: null }),
 		});
 		expect(result).toEqual({ status: ACTIVE_EVENT_OK, event: null, error: null });
+	});
+});
+
+// A board runs for weeks on one anonymous session. When that session dies mid-shift -- reaped by
+// Admin-PurgeAnonymousUsers, or simply expired -- the board used to 401 every 60s until somebody
+// reloaded the page, hiding every drink behind a fail-closed alcohol gate the whole time.
+describe("fetchActiveEventWithSessionRecovery", () => {
+	const okExecution = {
+		status: "completed",
+		responseStatusCode: 200,
+		responseBody: JSON.stringify({ event: { $id: "e1", name: "Tonight" } }),
+	};
+	const unauthorized = () => {
+		const err = new Error("missing scope (account)");
+		err.code = 401;
+		throw err;
+	};
+
+	const makeFunctions = (...outcomes) => {
+		const createExecution = jest.fn();
+		outcomes.forEach((o) => {
+			if (o instanceof Error) createExecution.mockRejectedValueOnce(o);
+			else createExecution.mockResolvedValueOnce(o);
+		});
+		return { createExecution };
+	};
+
+	it("does not touch the session when the first attempt succeeds", async () => {
+		const functions = makeFunctions(okExecution);
+		const account = { get: jest.fn(), createAnonymousSession: jest.fn() };
+		const result = await fetchActiveEventWithSessionRecovery(functions, account);
+		expect(result.status).toBe(ACTIVE_EVENT_OK);
+		expect(account.get).not.toHaveBeenCalled();
+		expect(account.createAnonymousSession).not.toHaveBeenCalled();
+	});
+
+	// The bug this exists for.
+	it("re-creates a dead session and retries once, recovering the event", async () => {
+		const functions = makeFunctions(new Error("401 unauthorized"), okExecution);
+		const account = {
+			get: jest.fn().mockImplementation(unauthorized),
+			createAnonymousSession: jest.fn().mockResolvedValue({ $id: "s1" }),
+		};
+		const result = await fetchActiveEventWithSessionRecovery(functions, account);
+		expect(account.createAnonymousSession).toHaveBeenCalledTimes(1);
+		expect(functions.createExecution).toHaveBeenCalledTimes(2);
+		expect(result.status).toBe(ACTIVE_EVENT_OK);
+		expect(result.event).toMatchObject({ $id: "e1" });
+	});
+
+	// A live session means the failure was something else. Minting a new anonymous user every
+	// minute against a down backend would leave a pile of them for the purge to clear.
+	it("does NOT re-create a session that is still alive", async () => {
+		const functions = makeFunctions(new Error("500 server error"));
+		const account = {
+			get: jest.fn().mockResolvedValue({ $id: "u1" }),
+			createAnonymousSession: jest.fn(),
+		};
+		const result = await fetchActiveEventWithSessionRecovery(functions, account);
+		expect(account.createAnonymousSession).not.toHaveBeenCalled();
+		expect(functions.createExecution).toHaveBeenCalledTimes(1);
+		expect(result.status).toBe(ACTIVE_EVENT_UNAVAILABLE);
+	});
+
+	// Fails closed, and reports unavailable rather than pretending there is no event tonight.
+	it("stays unavailable when the session cannot be re-created", async () => {
+		const functions = makeFunctions(new Error("401 unauthorized"));
+		const account = {
+			get: jest.fn().mockImplementation(unauthorized),
+			createAnonymousSession: jest.fn().mockRejectedValue(new Error("nope")),
+		};
+		const result = await fetchActiveEventWithSessionRecovery(functions, account);
+		expect(result.status).toBe(ACTIVE_EVENT_UNAVAILABLE);
+		expect(result.event).toBeNull();
+		expect(functions.createExecution).toHaveBeenCalledTimes(1);
+	});
+
+	it("retries only once, never in a loop", async () => {
+		const functions = makeFunctions(new Error("401"), new Error("401 again"));
+		const account = {
+			get: jest.fn().mockImplementation(unauthorized),
+			createAnonymousSession: jest.fn().mockResolvedValue({ $id: "s1" }),
+		};
+		const result = await fetchActiveEventWithSessionRecovery(functions, account);
+		expect(functions.createExecution).toHaveBeenCalledTimes(2);
+		expect(account.createAnonymousSession).toHaveBeenCalledTimes(1);
+		expect(result.status).toBe(ACTIVE_EVENT_UNAVAILABLE);
 	});
 });

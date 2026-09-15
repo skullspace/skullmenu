@@ -3,7 +3,7 @@ import { Client as Appwrite, Databases, Account, Functions, Query } from 'appwri
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import {
-    fetchActiveEvent as fetchActiveEventViaFunction,
+    fetchActiveEventWithSessionRecovery,
     ACTIVE_EVENT_OK,
     ACTIVE_EVENT_UNAVAILABLE,
     ACTIVE_EVENT_PENDING
@@ -131,12 +131,14 @@ export function useAppwrite() {
     // than as an empty "no event tonight": both hide alcohol, but only the fault gets a banner on
     // the board (App.js) so the room can see the gate is broken instead of assuming the bar shut.
     const fetchActiveEvent = useCallback(async () => {
-        const result = await fetchActiveEventViaFunction(functions);
+        // Recovery for a session that died mid-shift lives in utils/activeEvent.js so it can be
+        // tested without rendering this hook. See fetchActiveEventWithSessionRecovery.
+        const result = await fetchActiveEventWithSessionRecovery(functions, account);
         if (result.status === ACTIVE_EVENT_UNAVAILABLE) {
             console.error('error fetching active event', result.error);
         }
         setActiveEventState(result);
-    }, [functions]);
+    }, [functions, account]);
 
     useEffect(() => {
         console.log('setting up appwrite subscriptions');

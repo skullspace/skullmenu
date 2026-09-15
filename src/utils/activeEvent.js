@@ -114,3 +114,35 @@ export async function fetchActiveEvent(functions) {
 	}
 	return parseActiveEventExecution(execution);
 }
+
+/**
+ * fetchActiveEvent, plus the one recovery the board cannot live without.
+ *
+ * The board is a kiosk tab that stays open for WEEKS, and its anonymous session does not last that
+ * long -- Admin-PurgeAnonymousUsers reaps inactive anonymous users, and sessions expire on their
+ * own. The session is established once when the app mounts, so a session that dies mid-shift means
+ * every poll from then on is a 401. The alcohol gate fails closed on that, so the board hides every
+ * drink, all night, with nothing on the wall saying why, until a human thinks to reload the page.
+ *
+ * Recovery is gated on account.get() rather than on the error text. `unavailable` also covers the
+ * backend simply being down, and minting a fresh anonymous user every 60 seconds against a dead
+ * server would leave a trail of them for the purge to clean up later. Only a session that is
+ * genuinely gone gets replaced, and only a successful replacement earns the one retry.
+ */
+export async function fetchActiveEventWithSessionRecovery(functions, account) {
+	const first = await fetchActiveEvent(functions);
+	if (first.status !== ACTIVE_EVENT_UNAVAILABLE) return first;
+
+	try {
+		await account.get();
+		// Session is alive, so the failure was something else -- do not retry.
+		return first;
+	} catch (sessionGone) {
+		try {
+			await account.createAnonymousSession();
+		} catch (couldNotRecreate) {
+			return first;
+		}
+	}
+	return fetchActiveEvent(functions);
+}
